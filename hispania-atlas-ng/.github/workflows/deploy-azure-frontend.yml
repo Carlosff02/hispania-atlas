@@ -1,0 +1,28 @@
+name: Deploy Frontend to Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: hispania-atlas-ng/package-lock.json
+
+      - run: npm ci && npm run build
+        working-directory: ./hispania-atlas-ng
+
+      - uses: Azure/static-web-apps-deploy@v1
+        with:
+          app_location: ./hispania-atlas-ng
+          api_location: ''
+          output_location: ./hispania-atlas-ng/dist/hispania-atlas-ng/browser
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}

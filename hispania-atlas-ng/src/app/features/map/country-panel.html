@@ -1,0 +1,65 @@
+@if (country(); as c) {
+  <div
+    class="pointer-events-auto w-full max-w-md bg-paper border-2 border-brass p-6 shadow-vic rounded-sm"
+  >
+    <div class="flex items-start justify-between pb-4 border-b-2 border-paper-border mb-4">
+      <div>
+        <h2 class="font-display text-4xl font-bold text-vicblue leading-none">
+          {{ c.name }}
+        </h2>
+        <p class="text-sm text-ink-light mt-2">
+          Capital: <strong>{{ c.capital }}</strong>
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="close()"
+        class="p-1 text-ink-muted hover:text-ink"
+        aria-label="Cerrar panel"
+      >
+        &times;
+      </button>
+    </div>
+
+    @if (c.desc) {
+      <p
+        class="text-[13px] text-ink my-2 leading-relaxed bg-paper-light p-3 border border-paper-border rounded-sm italic"
+      >
+        {{ c.desc }}
+      </p>
+    }
+
+    @if (lugaresDelPais().length > 0) {
+      <div class="mt-4">
+        <div class="text-[11px] font-bold text-brass-dark uppercase tracking-wider mb-2">
+          Academias y Monumentos:
+        </div>
+        <div class="flex flex-wrap gap-2">
+          @for (lugar of visibles(); track lugar.id) {
+            <button
+              type="button"
+              (click)="selectPlace(lugar.id)"
+              class="text-[11px] px-2.5 py-1 bg-paper-light border border-brass/50 text-ink hover:bg-brass/20"
+            >
+              {{ lugar.name }}
+            </button>
+          }
+        </div>
+
+        @if (hayMas()) {
+          <button
+            type="button"
+            (click)="toggleVerTodos()"
+            [attr.aria-expanded]="verTodos()"
+            class="mt-3 text-[11px] font-bold uppercase tracking-wider text-brass-dark pb-0.5 border-b border-brass/50 hover:text-ink hover:border-ink transition-colors"
+          >
+            {{ verTodos() ? 'Ver menos' : 'Ver más (' + ocultos() + ')' }}
+          </button>
+        }
+      </div>
+    }
+
+    <app-place-card />
+  </div>
+}

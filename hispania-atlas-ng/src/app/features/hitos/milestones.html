@@ -1,0 +1,61 @@
+<div class="mx-auto max-w-[1600px] px-4 sm:px-6 py-8">
+  <h1 class="font-display text-4xl sm:text-5xl font-bold text-vicblue">
+    Cronología Hispanoamericana
+  </h1>
+
+  <div class="flex items-center gap-2 mt-8 overflow-x-auto pb-2 border-b border-paper-border">
+    @for (cat of categorias; track cat) {
+      <button type="button" (click)="setFiltro(cat)" [ngClass]="filterClass(cat)">
+        {{ cat }}
+      </button>
+    }
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_400px]">
+    <div class="space-y-4">
+      @for (m of listaFiltrada(); track m.year + '-' + m.title) {
+        <div
+          (click)="seleccionar(m)"
+          (keydown.enter)="seleccionar(m)"
+          role="button"
+          tabindex="0"
+          class="bg-paper-light border border-paper-border hover:border-brass p-5 cursor-pointer"
+        >
+          <div class="flex items-center gap-3 border-b border-paper-border pb-2 mb-2">
+            <span class="font-display text-3xl font-bold text-vicblue">{{ m.year }}</span>
+            <span
+              class="text-[10px] px-2 py-0.5 bg-paper-dark border border-paper-border text-ink-muted uppercase font-bold"
+            >
+              {{ m.type }}
+            </span>
+            <span class="text-xs text-brass-dark italic font-bold ml-auto">
+              {{ paisDe(m) }}
+            </span>
+          </div>
+          <h3 class="text-lg font-display font-bold text-ink">{{ m.title }}</h3>
+          <p class="text-[13px] text-ink-muted mt-1">{{ m.desc }}</p>
+        </div>
+      } @empty {
+        <p class="text-ink-muted italic text-[13px]">No hay hitos registrados para esta categoría.</p>
+      }
+    </div>
+
+    <!-- Panel de detalle, controlado por el signal local `seleccionado` -->
+    <div class="lg:sticky lg:top-24 h-fit">
+      @if (seleccionado(); as s) {
+        <div class="bg-paper border-2 border-brass p-8 shadow-vic">
+          <div class="text-[11px] uppercase font-bold text-brass-dark mb-2 text-center">
+            Registro Histórico · {{ s.type }}
+          </div>
+          <div class="font-display text-6xl font-bold text-vicblue text-center mb-4">
+            {{ s.year }}
+          </div>
+          <h2 class="text-2xl font-display font-bold text-ink text-center">{{ s.title }}</h2>
+          <div class="bg-paper-light border border-paper-border p-4 mt-6 text-sm text-ink leading-relaxed">
+            {{ s.desc }}
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

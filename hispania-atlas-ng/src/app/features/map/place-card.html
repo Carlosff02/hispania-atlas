@@ -1,0 +1,34 @@
+@if (place(); as p) {
+  <div #card class="mt-4 pt-4 border-t-2 border-paper-border">
+    <div class="flex justify-between items-start mb-2">
+      <span
+        class="text-[10px] px-2 py-0.5 bg-brass/20 text-brass-dark border border-brass/50 font-bold uppercase"
+      >
+        {{ p.category }}
+      </span>
+      <button
+        type="button"
+        (click)="close()"
+        aria-label="Cerrar lugar"
+        class="text-ink-muted hover:text-ink"
+      >
+        &times;
+      </button>
+    </div>
+
+    <h3 class="font-display text-2xl font-bold text-vicblue leading-tight">
+      {{ p.name }}
+    </h3>
+    <p class="text-[12px] text-ink-light italic mt-1 mb-3">{{ p.period }}</p>
+
+    @if (p.img) {
+      <img
+        [src]="p.img"
+        [alt]="p.name"
+        class="w-full h-36 object-cover shadow-sm mb-3"
+      />
+    }
+
+    <p class="text-[13px] text-ink leading-relaxed">{{ p.desc }}</p>
+  </div>
+}

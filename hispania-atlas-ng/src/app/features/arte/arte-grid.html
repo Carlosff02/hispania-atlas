@@ -1,0 +1,64 @@
+<div class="mx-auto max-w-[1600px] px-4 sm:px-6 py-8">
+  <h1 class="font-display text-4xl sm:text-5xl font-bold text-vicblue">
+    Bellas Artes y Expresión
+  </h1>
+
+  <div class="flex flex-wrap items-center gap-2 mt-8 pb-2 border-b border-paper-border">
+    @for (cat of categorias(); track cat) {
+      <button
+        type="button"
+        (click)="selectFilter(cat)"
+        [ngClass]="filterClass(cat)"
+      >
+        {{ label(cat) }}
+      </button>
+    }
+  </div>
+
+  <div class="mt-8 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+    @for (expresion of listaFiltrada(); track expresion.id) {
+      <div class="bg-paper border border-paper-border p-4 shadow-vic flex flex-col">
+        @if (expresion.imagenUrl) {
+          <div class="p-2 border-4 border-ink bg-paper-light mb-4">
+            <img
+              [src]="expresion.imagenUrl"
+              [alt]="expresion.titulo"
+              class="w-full h-48 object-cover"
+              loading="lazy"
+            />
+          </div>
+        }
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] text-brass-dark italic font-bold">
+            {{ expresion.paisNombre }}
+          </span>
+          <span
+            class="text-[9px] px-2 py-0.5 bg-paper-dark border border-paper-border text-ink-muted uppercase font-bold"
+          >
+            {{ expresion.categoriaLabel }}
+          </span>
+        </div>
+        <h3 class="font-display text-2xl font-bold text-vicblue leading-tight mb-2">
+          {{ expresion.titulo }}
+        </h3>
+        <p class="text-[13px] text-ink leading-relaxed flex-1">{{ expresion.desc }}</p>
+
+        <!--
+          La atribución no es adorno. Dos de las cuatro imágenes son Creative BY y
+          una BY-SA, y las licencias obligation a identificar autor y licencia. El
+          backend la devuelve en `creditos` porque el dato está en la tabla y no en
+          un comentario del HTML.
+        -->
+        @if (expresion.creditos) {
+          <p class="mt-3 pt-2 border-t border-paper-border text-[10px] text-ink-muted leading-snug">
+            {{ expresion.creditos }}
+          </p>
+        }
+      </div>
+    } @empty {
+      <p class="text-ink-muted italic text-[13px]">
+        No hay expresiones culturales para esta categoría.
+      </p>
+    }
+  </div>
+</div>

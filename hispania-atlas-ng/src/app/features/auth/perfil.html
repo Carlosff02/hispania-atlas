@@ -1,0 +1,59 @@
+<div class="min-h-[calc(100vh-4rem)] bg-vicblue-dark px-4 py-12">
+  <div class="mx-auto max-w-2xl">
+    <h1
+      class="font-display text-2xl tracking-[0.15em] uppercase text-brass-light font-bold"
+    >
+      Mi cuenta
+    </h1>
+
+    @if (usuario(); as u) {
+      <div
+        class="mt-6 bg-vicblue border border-brass/40 rounded-sm shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+      >
+        <dl class="divide-y divide-brass/15">
+          <div class="grid grid-cols-3 gap-4 px-6 py-4">
+            <dt class="text-[11px] tracking-[0.2em] uppercase text-paper-dark">Usuario</dt>
+            <dd class="col-span-2 text-sm text-paper-light font-semibold">{{ u.username }}</dd>
+          </div>
+          <div class="grid grid-cols-3 gap-4 px-6 py-4">
+            <dt class="text-[11px] tracking-[0.2em] uppercase text-paper-dark">Nombre</dt>
+            <dd class="col-span-2 text-sm text-paper-light">{{ u.nombre || '—' }}</dd>
+          </div>
+          <div class="grid grid-cols-3 gap-4 px-6 py-4">
+            <dt class="text-[11px] tracking-[0.2em] uppercase text-paper-dark">Email</dt>
+            <dd class="col-span-2 text-sm text-paper-light">{{ u.email }}</dd>
+          </div>
+          <div class="grid grid-cols-3 gap-4 px-6 py-4">
+            <dt class="text-[11px] tracking-[0.2em] uppercase text-paper-dark">Rol</dt>
+            <dd class="col-span-2 text-sm">
+              <span
+                class="inline-block px-2 py-0.5 rounded-sm bg-brass/20 border border-brass/50 text-brass-light text-[11px] font-bold tracking-[0.1em] uppercase"
+              >
+                {{ etiquetaRol() }}
+              </span>
+            </dd>
+          </div>
+          <div class="grid grid-cols-3 gap-4 px-6 py-4">
+            <dt class="text-[11px] tracking-[0.2em] uppercase text-paper-dark">Alta</dt>
+            <dd class="col-span-2 text-sm text-paper-light">{{ u.createdAt | date: 'mediumDate' }}</dd>
+          </div>
+        </dl>
+
+        <div class="px-6 py-4 border-t border-brass/15">
+          <p class="text-[11px] text-paper-dark">
+            La sesión caduca aproximadamente el {{ caducaEn() }}. Un cambio de rol o una
+            desactivación no cortan el token: surten efecto al iniciar sesión de nuevo.
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        (click)="salir()"
+        class="mt-6 px-5 py-2.5 bg-brass text-vicblue font-bold text-sm tracking-[0.15em] uppercase rounded-sm hover:bg-brass-light transition-colors"
+      >
+        Cerrar sesión
+      </button>
+    }
+  </div>
+</div>

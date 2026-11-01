@@ -1,0 +1,70 @@
+<div class="relative hidden sm:flex items-center">
+  <svg lucideSearch class="w-4 h-4 text-paper-dark absolute left-3 pointer-events-none"></svg>
+
+  <input
+    type="text"
+    id="busqueda-input"
+    role="combobox"
+    aria-label="Buscar región o monumento"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="showResults()"
+    [attr.aria-controls]="'busqueda-lista'"
+    autocomplete="off"
+    [value]="query()"
+    (input)="onInput($event)"
+    (focus)="onFocus()"
+    placeholder="Buscar región o monumento..."
+    class="bg-vicblue-dark border border-brass/50 rounded-sm pl-9 pr-4 py-1.5 text-[13px] w-36 lg:w-56 placeholder:text-paper-dark focus:outline-none focus:border-brass text-paper-light"
+  />
+
+  @if (showResults()) {
+    <div
+      id="busqueda-lista"
+      role="listbox"
+      aria-label="Resultados de la búsqueda"
+      class="absolute top-full left-0 right-0 mt-2 bg-paper-light text-ink border-2 border-brass shadow-vic p-2 max-h-64 overflow-y-auto z-[1500]"
+    >
+      @if (!hasResults()) {
+        <div class="p-3 text-xs text-ink-muted text-center italic" role="status">
+          Sin registros hallados
+        </div>
+      }
+
+      @for (c of matchedCountries(); track c.code) {
+        <button
+          type="button"
+          role="option"
+          [attr.aria-selected]="false"
+          (click)="seleccionarPais(c)"
+          class="w-full text-left p-2 hover:bg-paper border-b border-paper-border last:border-0 cursor-pointer flex items-center justify-between"
+        >
+          <span>
+            <span class="block text-[13px] font-bold text-vicblue">{{ c.name }}</span>
+            <span class="block text-[10px] text-ink-muted italic">{{ c.capital }}</span>
+          </span>
+          <span class="text-[9px] px-2 py-0.5 border border-ink/20 text-ink-muted uppercase">
+            Nación
+          </span>
+        </button>
+      }
+
+      @for (p of matchedPlaces(); track p.id) {
+        <button
+          type="button"
+          role="option"
+          [attr.aria-selected]="false"
+          (click)="seleccionarLugar(p)"
+          class="w-full text-left p-2 hover:bg-paper border-b border-paper-border last:border-0 cursor-pointer flex items-center justify-between"
+        >
+          <span>
+            <span class="block text-[13px] font-bold text-ink">{{ p.name }}</span>
+            <span class="block text-[10px] text-brass-dark italic">{{ p.category }}</span>
+          </span>
+          <span class="text-[9px] px-2 py-0.5 border border-ink/20 text-ink-muted uppercase">
+            Cultura
+          </span>
+        </button>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,66 @@
+<div class="relative">
+  @if (autenticado()) {
+    <button
+      type="button"
+      (click)="alternar()"
+      class="flex items-center gap-2 px-2.5 py-1.5 rounded-sm border border-brass/40 hover:border-brass transition-colors"
+      aria-haspopup="true"
+      [attr.aria-expanded]="abierto()"
+    >
+      <span
+        class="grid place-items-center w-7 h-7 rounded-full bg-brass/20 border border-brass text-[11px] font-bold text-brass-light uppercase"
+      >
+        {{ usuario()?.username?.charAt(0) }}
+      </span>
+      <span class="hidden sm:flex flex-col items-start leading-tight">
+        <span class="text-[12px] font-bold text-paper-light">{{ usuario()?.username }}</span>
+        <span class="text-[9px] tracking-[0.15em] uppercase text-paper-dark">{{
+          etiquetaRol()
+        }}</span>
+      </span>
+    </button>
+
+    @if (abierto()) {
+      <div
+        class="absolute right-0 mt-2 w-56 bg-vicblue border border-brass/40 rounded-sm shadow-[0_8px_24px_rgba(0,0,0,0.5)] z-[1300]"
+      >
+        <div class="px-4 py-3 border-b border-brass/20">
+          <p class="text-sm font-bold text-paper-light truncate">
+            {{ usuario()?.nombre || usuario()?.username }}
+          </p>
+          <p class="text-[11px] text-paper-dark truncate">{{ usuario()?.email }}</p>
+          <p class="mt-1 text-[9px] tracking-[0.15em] uppercase text-brass-light">
+            {{ etiquetaRol() }}
+          </p>
+        </div>
+
+        <nav class="py-1" aria-label="Secciones de cuenta">
+          @for (item of items(); track item.path) {
+            <a
+              [routerLink]="item.path"
+              (click)="alNavegar()"
+              class="block px-4 py-2 text-xs font-bold tracking-[0.1em] uppercase text-paper-dark hover:text-brass-light hover:bg-vicblue-dark transition-colors"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </nav>
+
+        <button
+          type="button"
+          (click)="salir()"
+          class="w-full text-left px-4 py-2.5 text-xs font-bold tracking-[0.1em] uppercase text-paper-dark hover:text-red-200 hover:bg-vicblue-dark border-t border-brass/20 transition-colors"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    }
+  } @else {
+    <a
+      routerLink="/cuenta/entrar"
+      class="px-3 py-1.5 text-[12px] font-bold tracking-[0.1em] uppercase rounded-sm border border-brass/50 text-brass-light hover:bg-brass hover:text-vicblue transition-colors"
+    >
+      Entrar
+    </a>
+  }
+</div>

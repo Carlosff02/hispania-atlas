@@ -1,0 +1,332 @@
+<div class="min-h-[calc(100vh-4rem)] bg-vicblue-dark px-4 py-10">
+  <div class="mx-auto max-w-5xl">
+    <h1
+      class="font-display text-2xl tracking-[0.15em] uppercase text-brass-light font-bold"
+    >
+      Gestión de lugares
+    </h1>
+    <!-- El texto de cabeza menciona las dos cosas que esta pantalla puede hacer y
+         quién puede hacer cada una, porque el botón de borrar depende del rol. -->
+    <p class="mt-1 text-sm text-paper-dark">
+      Crea y edita lugares directamente. Si prefieres que otra persona lo revise antes,
+      usa "Mis propuestas". @if (puedeBorrar()) {
+        Como administrador, además puedes eliminar.
+      }
+    </p>
+
+    @if (aviso()) {
+      <p
+        class="mt-5 text-sm text-emerald-200 border border-emerald-400/40 bg-emerald-900/20 rounded-sm px-4 py-3"
+        role="status"
+      >
+        {{ aviso() }}
+      </p>
+    }
+    @if (error()) {
+      <p
+        class="mt-5 text-sm text-red-200 border border-red-400/40 bg-red-900/20 rounded-sm px-4 py-3"
+        role="alert"
+      >
+        {{ error() }}
+      </p>
+    }
+
+    <!-- ================= FORMULARIO ================= -->
+    <form
+      [formGroup]="form"
+      (ngSubmit)="guardar()"
+      class="mt-6 bg-vicblue border border-brass/25 rounded-sm p-5 space-y-4"
+    >
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="text-sm font-bold tracking-[0.15em] uppercase text-brass-light">
+          {{ tituloFormulario() }}
+        </h2>
+        @if (editando() !== null) {
+          <button
+            type="button"
+            (click)="cancelarEdicion()"
+            class="text-[11px] text-paper-dark hover:text-paper-light uppercase tracking-[0.1em]"
+          >
+            Cancelar edición
+          </button>
+        }
+      </div>
+
+      <!-- El id solo aparece en el alta. En una edición lo impone la ruta, y
+           enseñarlo editable daría la impresión de que se puede cambiar la
+           clave primaria de un lugar que ya está en el mapa. -->
+      @if (editando() === null) {
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >Identificador</span
+          >
+          <div class="flex gap-2">
+            <input
+              type="text"
+              formControlName="id"
+              placeholder="teatro_solis"
+              maxlength="50"
+              class="flex-1 px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+            />
+            <button
+              type="button"
+              (click)="sugerirDesdeNombre()"
+              class="px-3 py-2.5 bg-transparent border border-brass/40 rounded-sm text-brass-light text-[11px] font-bold uppercase tracking-[0.1em] hover:bg-brass/10 transition-colors"
+            >
+              Generar
+            </button>
+          </div>
+          <span class="block mt-1 text-[11px] text-paper-dark">
+            Minúsculas, dígitos y guion bajo. Es la clave primaria del lugar, y es lo que
+            usa el mapa para abrirlo.
+          </span>
+        </label>
+      }
+
+      <label class="block">
+        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Nombre del lugar</span
+        >
+        <input
+          type="text"
+          formControlName="name"
+          placeholder="Museo de la Nación"
+          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+        />
+        @if (controlMarcado('name')) {
+          <span class="block mt-1 text-[11px] text-red-300">El nombre es obligatorio.</span>
+        }
+      </label>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Desplegable y no texto: el backend exige dos letras exactas y
+             muchos códigos se parecen (GT/GU, NI/NI). Elegir de la lista evita
+             el 400 y de paso muestra el nombre real del país. -->
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >País</span
+          >
+          <select
+            formControlName="country"
+            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm focus:outline-none focus:border-brass"
+          >
+            <option value="" class="bg-vicblue">Elige un país…</option>
+            @for (p of paises(); track p.code) {
+              <option [value]="p.code" class="bg-vicblue">{{ p.name }}</option>
+            }
+          </select>
+          @if (controlMarcado('country')) {
+            <span class="block mt-1 text-[11px] text-red-300">El país es obligatorio.</span>
+          }
+        </label>
+
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >Latitud</span
+          >
+          <input
+            type="number"
+            formControlName="lat"
+            step="any"
+            min="-90"
+            max="90"
+            placeholder="-12.07"
+            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          />
+        </label>
+
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >Longitud</span
+          >
+          <input
+            type="number"
+            formControlName="lng"
+            step="any"
+            min="-180"
+            max="180"
+            placeholder="-77.07"
+            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          />
+        </label>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >Categoría</span
+          >
+          <select
+            formControlName="category"
+            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm focus:outline-none focus:border-brass"
+          >
+            @for (c of categorias; track c) {
+              <option [value]="c" class="bg-vicblue">{{ c }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >Icono</span
+          >
+          <select
+            formControlName="icon"
+            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm focus:outline-none focus:border-brass"
+          >
+            @for (i of iconos; track i) {
+              <option [value]="i" class="bg-vicblue">{{ i }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+            >Periodo (opcional)</span
+          >
+          <input
+            type="text"
+            formControlName="period"
+            placeholder="1872"
+            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          />
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Descripción (opcional)</span
+        >
+        <textarea
+          formControlName="descText"
+          rows="3"
+          placeholder="Qué es y por qué merece entrar en el atlas."
+          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+        ></textarea>
+      </label>
+
+      <label class="block">
+        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >URL de imagen (opcional)</span
+        >
+        <input
+          type="url"
+          formControlName="img"
+          placeholder="https://…"
+          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+        />
+      </label>
+
+      <button
+        type="submit"
+        [disabled]="guardando()"
+        class="px-6 py-2.5 bg-brass text-vicblue font-bold text-sm tracking-[0.15em] uppercase rounded-sm hover:bg-brass-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ textoBoton() }}
+      </button>
+    </form>
+
+    <!-- ================= LISTA ================= -->
+    <div class="mt-10">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-sm font-bold tracking-[0.15em] uppercase text-brass-light">
+          {{ lugares().length }} lugares
+        </h2>
+        <label class="block">
+          <span class="sr-only">Filtrar lugares por nombre, identificador o país</span>
+          <input
+            type="search"
+            [value]="filtro()"
+            (input)="filtro.set($any($event.target).value)"
+            placeholder="Filtrar por nombre, id o país…"
+            class="px-3 py-2 bg-vicblue border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          />
+        </label>
+      </div>
+
+      @if (filtrados().length === 0) {
+        <p
+          class="mt-4 text-sm text-paper-dark border border-brass/25 border-dashed rounded-sm px-4 py-8 text-center"
+        >
+          @if (lugares().length === 0) {
+            Todavía no hay lugares. Crea el primero con el formulario de arriba.
+          } @else {
+            Ningún lugar coincide con "{{ filtro() }}".
+          }
+        </p>
+      } @else {
+        <ul class="mt-4 space-y-2">
+          @for (l of filtrados(); track l.id) {
+            <li class="bg-vicblue border border-brass/25 rounded-sm px-4 py-3">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <h3 class="font-bold text-paper-light">{{ l.name }}</h3>
+                  <p class="text-[11px] text-paper-dark mt-0.5">
+                    <code class="text-brass-light/80">{{ l.id }}</code> ·
+                    {{ l.category }} · {{ l.country }} · {{ l.coords[0] }}, {{ l.coords[1] }}
+                  </p>
+                </div>
+
+                <div class="flex gap-2 shrink-0">
+                  <button
+                    type="button"
+                    (click)="editar(l)"
+                    [disabled]="guardando() || borrando() !== null"
+                    class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-brass/40 rounded-sm text-brass-light hover:bg-brass/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Editar
+                  </button>
+
+                  <!-- El borrado es irreversible, así que no ocurre con el primer
+                       clic: primero se pide y después se confirma. El bloque solo
+                       se pinta para ADMIN+, igual que el `@PreAuthorize` del
+                       backend. Que un colaborador no lo vea evita el 403; el 403
+                       sigue siendo la respuesta si alguien lo llama a mano. -->
+                  @if (puedeBorrar() && confirmando() !== l.id) {
+                    <button
+                      type="button"
+                      (click)="pedirBorrado(l.id)"
+                      [disabled]="borrando() !== null"
+                      class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-red-400/40 rounded-sm text-red-200 hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Eliminar
+                    </button>
+                  }
+                </div>
+              </div>
+
+              @if (confirmando() === l.id) {
+                <div
+                  class="mt-3 flex flex-wrap items-center justify-between gap-3 border-l-2 border-red-400/60 pl-3"
+                >
+                  <p class="text-xs text-red-200">
+                    <span class="font-bold">No se puede deshacer.</span> Se borrará
+                    "{{ l.name }}" y el mapa dejará de mostrarlo.
+                  </p>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      (click)="confirmarBorrado(l.id)"
+                      [disabled]="borrando() !== null"
+                      class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] bg-red-500/20 border border-red-400/60 rounded-sm text-red-100 hover:bg-red-500/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {{ borrando() === l.id ? 'Borrando…' : 'Sí, eliminar' }}
+                    </button>
+                    <button
+                      type="button"
+                      (click)="cancelarBorrado()"
+                      [disabled]="borrando() !== null"
+                      class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-brass/40 rounded-sm text-paper-light hover:bg-brass/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</div>

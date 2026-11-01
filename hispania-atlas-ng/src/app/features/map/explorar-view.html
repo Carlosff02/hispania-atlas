@@ -1,0 +1,24 @@
+<div class="relative w-full h-[calc(100vh-4rem)] overflow-hidden">
+  <app-map-view />
+
+  <!-- `overflow-y-auto` es imprescindible: el padre tiene `overflow-hidden`, asi
+       que sin scroll propio el panel se recortaria en `bottom-8` y las fichas
+       inferiores serian inalcanzables. `overscroll-contain` evita que al llegar
+       al final del scroll se siga encadenando el gesto al mapa de Leaflet. -->
+  <div
+    class="absolute z-[600] right-6 top-20 bottom-8 w-full max-w-md pointer-events-auto overflow-y-auto overscroll-contain pe-2"
+  >
+    <app-country-panel />
+  </div>
+
+  @if (loading()) {
+    <div
+      class="absolute z-[700] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-paper border-2 border-brass shadow-vic px-6 py-4 text-center pointer-events-none"
+    >
+      <div class="text-[11px] uppercase font-bold text-brass-dark tracking-wider">
+        Cargando cartografía
+      </div>
+      <div class="text-[11px] text-ink-muted italic mt-1">Obteniendo datos del backend…</div>
+    </div>
+  }
+</div>

@@ -1,0 +1,153 @@
+# =============================================================================
+# Hispania Atlas — .gitignore unico para los dos proyectos del repositorio:
+#   hispania-atlas-ng/        Angular 20  (Node)
+#   hispania-backend-spring/  Spring Boot 4 (Maven, Java 25)
+#
+# Los patrones NO llevan barra inicial, asi que se aplican en cualquier
+# nivel: el mismo `target/` sirve para el backend y para cualquier modulo
+# que se anada en el futuro.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1. Dependencias de Node / Angular
+# -----------------------------------------------------------------------------
+
+# 264 MB. Nunca se versionan: se reinstalan con `npm ci`.
+node_modules/
+
+# Cache de compilacion de Angular (54 MB). Es una cache, no un artefacto:
+# se regenera sola con `npm start`.
+.angular/
+
+# Salida de `ng build`.
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Herramientas de test.
+coverage/
+testem.log
+libpeerconnection.log
+connect.lock
+__screenshots__/
+typings/
+
+# Logs de gestores de paquetes.
+npm-debug.log
+yarn-error.log
+pnpm-debug.log*
+
+
+# -----------------------------------------------------------------------------
+# 2. Maven / Java (Spring Boot)
+# -----------------------------------------------------------------------------
+
+# 57 MB, incluido el jar ejecutable de 56 MB. Se genera con `./mvnw package`.
+target/
+bin/
+out/
+
+# Ficheros auxiliares del release plugin.
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+.flattened-pom.xml
+
+# Clases compiladas sueltas (Eclipse, compilacion manual).
+*.class
+
+# OJO: `.mvn/wrapper/maven-wrapper.properties` SI se versiona a proposito.
+# fija la version de Maven del equipo, para que todos compilen con la misma.
+
+
+# -----------------------------------------------------------------------------
+# 3. Configuracion local y secretos
+# -----------------------------------------------------------------------------
+
+# Credenciales reales. El unico fichero que se versiona es el de ejemplo.
+.env
+.env.local
+.env.*.local
+
+# Plantilla de variables: documenta que necesita el backend para arrancar.
+# El `!` la saca de nuevo de la lista anterior; sin esta linea, .env.example
+# quedaria ignorado y el equipo no sabria que variables existen.
+!.env.example
+
+# Certificados y claves privadas.
+*.keystore
+*.jks
+*.p12
+*.pfx
+
+# Configuracion por maquina de Spring (deja el application.properties limpio).
+application-local.properties
+application-local.yml
+
+
+# -----------------------------------------------------------------------------
+# 4. IDEs y editores
+# -----------------------------------------------------------------------------
+
+# IntelliJ IDEA.
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse.
+.project
+.classpath
+.settings/
+.factorypath
+
+# NetBeans.
+nb-configuration.xml
+
+# Visual Studio Code: se ignora la carpeta pero se comparten los ficheros de
+# configuracion que describen como lanzar el proyecto.
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Vim / Sublime / JetBrains historial local.
+*.swp
+*.swo
+*~
+.history/
+
+
+# -----------------------------------------------------------------------------
+# 5. Sistema operativo
+# -----------------------------------------------------------------------------
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Thumbs.db:encryptable
+desktop.ini
+$RECYCLE.BIN/
+
+# Windows: sobran los archivos de bloqueo que Office crea y nunca borra.
+~$*
+~$*.*
+
+
+# -----------------------------------------------------------------------------
+# 6. Logs y volcados
+# -----------------------------------------------------------------------------
+
+*.log
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
+*.dump

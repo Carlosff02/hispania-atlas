@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Tipografías — reemplaza tu fontFamily: { heading, display, body } */
+  --font-heading: 'Cormorant Garamond', serif;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Colores custom — reemplazan tu colors: { paper, ink, brass, vicblue } */
+  --color-paper: #ebe2cc;
+  --color-paper-dark: #d9cbb0;
+  --color-paper-light: #f5eedc;
+  --color-paper-border: #c2b295;
+
+  --color-ink: #2e251a;
+  --color-ink-light: #4f4233;
+  --color-ink-muted: #736553;
+
+  --color-brass: #b08d57;
+  --color-brass-dark: #806236;
+  --color-brass-light: #d6b885;
+
+  --color-vicblue: #1c2833;
+  --color-vicblue-dark: #11181f;
+
+  /* Sombras custom — reemplazan tu boxShadow: { vic, frame } */
+  --shadow-vic: 4px 4px 12px rgba(46, 37, 26, 0.15), 0 0 0 1px rgba(176, 141, 87, 0.3);
+}
+
+body {
+  background: #ebe2cc;
+  color: #2e251a;
+}
+
+/*
+ * Leaflet se carga como hoja de estilos global desde angular.json, pero crea
+ * varios elementos (atribución, tooltips) FUERA del flujo del componente, así
+ * que los ajustes van aquí y no en los `styles` del componente: la encapsulación
+ * de estilos de Angular no aplicaría a nodos que Leaflet crea en otra jerarquía.
+ */
+.leaflet-container {
+  background: #d6cdb8;
+  font-family: var(--font-body);
+}
+
+/* La atribución no debe capturar el arrastre del mapa, pero sus enlaces
+   siguen siendo clicables. */
+.leaflet-attribution-control {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+.leaflet-attribution-control a {
+  pointer-events: auto !important;
+}
+
+.leaflet-tooltip {
+  background: var(--color-paper-light);
+  border: 2px solid var(--color-brass);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-vic);
+  font-family: var(--font-body);
+}
+.leaflet-tooltip-top::before {
+  border-top-color: var(--color-brass);
+}
+
+/* Los countries del mapa con fillOpacity bajo se leen mejor sin contorno al
+   pasar el cursor por encima. */
+.leaflet-interactive {
+  transition: fill-opacity 0.2s ease;
+}
+
