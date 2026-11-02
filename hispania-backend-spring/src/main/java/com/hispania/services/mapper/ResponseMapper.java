@@ -114,6 +114,14 @@ public class ResponseMapper {
      * {@link Lugar} con su categoria.
      */
     public ExpresionCulturalResponse toExpresionResponse(ExpresionCultural entity) {
+        String imagen = entity.getImagen();
+        String imagenUrl = null;
+        if (imagen != null && !imagen.isBlank()) {
+            imagenUrl = (imagen.startsWith("http://") || imagen.startsWith("https://") || imagen.startsWith("/"))
+                    ? imagen
+                    : RUTA_IMAGENES + imagen;
+        }
+
         return new ExpresionCulturalResponse(
                 entity.getId(),
                 entity.getTitulo(),
@@ -121,7 +129,7 @@ public class ResponseMapper {
                 entity.getPais().getCode(),
                 entity.getPais().getName(),
                 entity.getDescText(),
-                entity.getImagen() != null ?  entity.getImagen() : null,
+                imagenUrl,
                 entity.getCreditos()
         );
     }

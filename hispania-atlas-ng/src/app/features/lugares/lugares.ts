@@ -129,7 +129,7 @@ export class Lugares {
     categoria: ['DANZA' as CategoriaExpresion, [Validators.required]],
     country: ['', [Validators.required]],
     descText: ['', [Validators.required, Validators.maxLength(1000)]],
-    imagen: ['', [Validators.maxLength(100)]],
+    imagen: ['', [Validators.maxLength(500)]],
     creditos: ['', [Validators.maxLength(300)]],
   });
 
@@ -204,7 +204,7 @@ export class Lugares {
       categoria: e.categoria,
       country: e.paisCode,
       descText: e.desc,
-      imagen: e.imagenUrl ? e.imagenUrl.replace(/^.*\/expresiones\//, '') : '',
+      imagen: e.imagenUrl || '',
       creditos: e.creditos || '',
     });
     this.formExpresion.controls.id.disable();

@@ -43,7 +43,7 @@ public record ExpresionCulturalRequest(
         @Size(max = 1000, message = "La descripcion no puede superar los 1000 caracteres")
         String descText,
 
-        @Size(max = 100, message = "El nombre de imagen no puede superar los 100 caracteres")
+        @Size(max = 500, message = "La URL de imagen no puede superar los 500 caracteres")
         String imagen,
 
         @Size(max = 300, message = "Los creditos no pueden superar los 300 caracteres")

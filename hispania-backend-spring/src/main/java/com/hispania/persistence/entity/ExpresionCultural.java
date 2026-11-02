@@ -65,7 +65,7 @@ public class ExpresionCultural {
     @Column(name = "desc_text", length = 1000, nullable = false)
     private String descText;
 
-    @Column(name = "imagen", length = 100)
+    @Column(name = "imagen", length = 500)
     private String imagen;
 
     /**
