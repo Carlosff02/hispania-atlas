@@ -48,4 +48,19 @@ public interface ExpresionCulturalService {
     ExpresionCulturalResponse crear(String id, String titulo, CategoriaExpresion categoria,
                                     String paisCode, String descText, String imagen,
                                     String creditos);
+
+    /**
+     * Busca una expresion por su id.
+     */
+    ExpresionCulturalResponse buscarPorId(String id);
+
+    /**
+     * Actualiza una expresion cultural existente.
+     */
+    ExpresionCulturalResponse actualizar(String id, com.hispania.presentation.dto.request.ExpresionCulturalRequest request);
+
+    /**
+     * Elimina una expresion cultural por su id.
+     */
+    void eliminar(String id);
 }

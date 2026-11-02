@@ -23,11 +23,21 @@
  */
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { CATEGORIAS_EXPRESION } from '../models';
 import type { CategoriaExpresion, ExpresionCultural, ExpresionCulturalDto } from '../models';
+
+export interface ExpresionCulturalRequest {
+  id?: string | null;
+  titulo: string;
+  categoria: CategoriaExpresion;
+  country: string;
+  descText: string;
+  imagen?: string | null;
+  creditos?: string | null;
+}
 
 /**
  * Valida la categoría contra la lista cerrada en vez de hacer `as CategoriaExpresion`.
@@ -73,26 +83,48 @@ export class ExpressionsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.apiBaseUrl;
 
+  private readonly refreshSubject = new BehaviorSubject<void>(undefined);
+
   /**
-   * Observable de todas las expresiones. Emite una vez y se completa.
-   *
-   * `shareReplay({ bufferSize: 1, refCount: false })` evita llamadas duplicadas si
-   * varios componentes se suscriben a la vez.
+   * Observable de todas las expresiones. Se actualiza cuando se crea, edita o elimina una.
    */
-  readonly expresiones$: Observable<ExpresionCultural[]> = this.http
-    .get<ExpresionCulturalDto[]>(`${this.baseUrl}/expresiones`)
-    .pipe(
-      map((data) =>
-        data
-          .map(mapExpresionDTO)
-          .filter((e): e is ExpresionCultural => e !== null),
+  readonly expresiones$: Observable<ExpresionCultural[]> = this.refreshSubject.pipe(
+    switchMap(() =>
+      this.http.get<ExpresionCulturalDto[]>(`${this.baseUrl}/expresiones`).pipe(
+        map((data) =>
+          data
+            .map(mapExpresionDTO)
+            .filter((e): e is ExpresionCultural => e !== null),
+        ),
+        catchError((err: HttpErrorResponse) => {
+          console.warn(`Backend unavailable (${err.status}) al cargar /expresiones`);
+          return of([] as ExpresionCultural[]);
+        }),
       ),
-      catchError((err: HttpErrorResponse) => {
-        console.warn(`Backend unavailable (${err.status}) al cargar /expresiones`);
-        return of([] as ExpresionCultural[]);
-      }),
-      shareReplay({ bufferSize: 1, refCount: false }),
-    );
+    ),
+  );
+
+  recargar(): void {
+    this.refreshSubject.next();
+  }
+
+  crear(request: ExpresionCulturalRequest): Observable<ExpresionCulturalDto> {
+    return this.http
+      .post<ExpresionCulturalDto>(`${this.baseUrl}/expresiones`, request)
+      .pipe(tap(() => this.recargar()));
+  }
+
+  actualizar(id: string, request: ExpresionCulturalRequest): Observable<ExpresionCulturalDto> {
+    return this.http
+      .put<ExpresionCulturalDto>(`${this.baseUrl}/expresiones/${id}`, request)
+      .pipe(tap(() => this.recargar()));
+  }
+
+  eliminar(id: string): Observable<void> {
+    return this.http
+      .delete<void>(`${this.baseUrl}/expresiones/${id}`)
+      .pipe(tap(() => this.recargar()));
+  }
 
   /**
    * Las expresiones de un país.

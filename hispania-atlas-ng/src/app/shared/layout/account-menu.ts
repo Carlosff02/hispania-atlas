@@ -38,7 +38,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { path: '/cuenta', label: 'Mi cuenta', minimo: null },
   { path: '/propuestas', label: 'Mis propuestas', minimo: null },
-  { path: '/lugares', label: 'Gestionar lugares', minimo: 'COLABORADOR' },
+  { path: '/lugares', label: 'Gestionar patrimonio', minimo: 'COLABORADOR' },
   { path: '/propuestas/moderar', label: 'Moderar propuestas', minimo: 'COLABORADOR' },
   { path: '/admin/usuarios', label: 'Administrar cuentas', minimo: 'ADMIN' },
 ];

@@ -1,14 +1,24 @@
 package com.hispania.presentation.controllers;
 
+import com.hispania.presentation.dto.request.ExpresionCulturalRequest;
 import com.hispania.presentation.dto.response.ExpresionCulturalResponse;
 import com.hispania.services.interfaces.ExpresionCulturalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 import java.util.List;
 
@@ -67,5 +77,57 @@ public class ExpresionCulturalController {
         return expresiones == null
                 ? ResponseEntity.notFound().build()
                 : ResponseEntity.ok(expresiones);
+    }
+
+    /**
+     * {@code POST /api/expresiones} -> Crea una expresion cultural directamente.
+     * Exige COLABORADOR.
+     */
+    @PostMapping
+    @PreAuthorize("@jerarquia.puede(authentication, 'COLABORADOR')")
+    public ResponseEntity<ExpresionCulturalResponse> crear(
+            @Validated(ExpresionCulturalRequest.OnCreate.class) @RequestBody ExpresionCulturalRequest request) {
+        log.info("Creando expresion cultural: {} ({})", request.titulo(), request.country());
+        ExpresionCulturalResponse creada = expresionService.crear(
+                request.id(),
+                request.titulo(),
+                request.categoria(),
+                request.country(),
+                request.descText(),
+                request.imagen(),
+                request.creditos()
+        );
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(creada.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(creada);
+    }
+
+    /**
+     * {@code PUT /api/expresiones/{id}} -> Actualiza una expresion cultural.
+     * Exige COLABORADOR.
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("@jerarquia.puede(authentication, 'COLABORADOR')")
+    public ResponseEntity<ExpresionCulturalResponse> actualizar(
+            @PathVariable String id,
+            @Validated(ExpresionCulturalRequest.OnUpdate.class) @RequestBody ExpresionCulturalRequest request) {
+        log.info("Actualizando expresion cultural id: {}", id);
+        return ResponseEntity.ok(expresionService.actualizar(id, request));
+    }
+
+    /**
+     * {@code DELETE /api/expresiones/{id}} -> Elimina una expresion cultural.
+     * Exige ADMIN.
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("@jerarquia.puede(authentication, 'ADMIN')")
+    public ResponseEntity<Void> eliminar(@PathVariable String id) {
+        log.warn("Eliminando expresion cultural id: {}", id);
+        expresionService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

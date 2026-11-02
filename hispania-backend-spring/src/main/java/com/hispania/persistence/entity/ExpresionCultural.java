@@ -95,6 +95,30 @@ public class ExpresionCultural {
         this.createdAt = createdAt;
     }
 
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public void setCategoria(CategoriaExpresion categoria) {
+        this.categoria = categoria;
+    }
+
+    public void setPais(Pais pais) {
+        this.pais = pais;
+    }
+
+    public void setDescText(String descText) {
+        this.descText = descText;
+    }
+
+    public void setImagen(String imagen) {
+        this.imagen = imagen;
+    }
+
+    public void setCreditos(String creditos) {
+        this.creditos = creditos;
+    }
+
     public String getId() {
         return id;
     }

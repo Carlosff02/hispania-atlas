@@ -7,6 +7,7 @@ import com.hispania.persistence.entity.ExpresionCultural;
 import com.hispania.persistence.entity.Pais;
 import com.hispania.persistence.repository.ExpresionCulturalRepository;
 import com.hispania.persistence.repository.PaisRepository;
+import com.hispania.presentation.dto.request.ExpresionCulturalRequest;
 import com.hispania.presentation.dto.response.ExpresionCulturalResponse;
 import com.hispania.services.interfaces.ExpresionCulturalService;
 import com.hispania.services.mapper.ResponseMapper;
@@ -101,5 +102,46 @@ public class ExpresionCulturalServiceImpl implements ExpresionCulturalService {
                 Instant.now()));
 
         return mapper.toExpresionResponse(guardada);
+    }
+
+    @Override
+    public ExpresionCulturalResponse buscarPorId(String id) {
+        return expresionRepository.findById(id)
+                .map(mapper::toExpresionResponse)
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public ExpresionCulturalResponse actualizar(String id, ExpresionCulturalRequest request) {
+        ExpresionCultural expresion = expresionRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.de("ExpresionCultural", id));
+
+        Pais pais = paisRepository.findById(request.country())
+                .orElseThrow(() -> ResourceNotFoundException.de("Pais", request.country()));
+
+        if (request.imagen() != null && !request.imagen().isBlank() &&
+                (request.creditos() == null || request.creditos().isBlank())) {
+            throw new IllegalArgumentException(
+                    "Una expresion con imagen necesita creditos: es material de autor y hay que identificarlo");
+        }
+
+        expresion.setTitulo(request.titulo());
+        expresion.setCategoria(request.categoria());
+        expresion.setPais(pais);
+        expresion.setDescText(request.descText());
+        expresion.setImagen(request.imagen() == null || request.imagen().isBlank() ? null : request.imagen());
+        expresion.setCreditos(request.creditos() == null || request.creditos().isBlank() ? null : request.creditos());
+
+        return mapper.toExpresionResponse(expresion);
+    }
+
+    @Override
+    @Transactional
+    public void eliminar(String id) {
+        if (!expresionRepository.existsById(id)) {
+            throw ResourceNotFoundException.de("ExpresionCultural", id);
+        }
+        expresionRepository.deleteById(id);
     }
 }
