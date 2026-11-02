@@ -87,13 +87,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(CorsProperties props) {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(Arrays.asList(props.getAllowedOrigins()));
+        cfg.setAllowedOriginPatterns(Arrays.asList(props.getAllowedOrigins()));
         cfg.setAllowedMethods(Arrays.asList(props.getAllowedMethods()));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", cfg);
+        source.registerCorsConfiguration("/**", cfg);
         return source;
     }
 
@@ -115,6 +115,9 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/countries/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/expresiones/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/patrimonios/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/expresiones/**").permitAll()
 
                         .requestMatchers(
                                 HttpMethod.POST,
