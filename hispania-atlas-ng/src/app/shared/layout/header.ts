@@ -24,9 +24,8 @@ interface NavItem {
  */
 const NAV_ITEMS: NavItem[] = [
   { path: '/explorar', label: 'Cartografía' },
-  { path: '/arte', label: 'Bellas Artes' },
+  { path: '/patrimonios', label: 'Patrimonio Cultural' },
   { path: '/hitos', label: 'Anales Históricos' },
-  { path: '/cultura', label: 'Patrimonio Cultural' },
   { path: '/datos', label: 'Economía' },
 ];
 
@@ -72,9 +71,6 @@ export class Header {
   protected readonly isExplorar = computed(() => this.url() === '/explorar');
 
   protected isActive(path: string): boolean {
-    if (path === '/cultura') {
-      return this.url() === '/cultura' || this.url() === '/patrimonios';
-    }
     return this.url() === path;
   }
 

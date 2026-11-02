@@ -29,8 +29,8 @@ Siga este orden durante la defensa para evidenciar el cumplimiento de las Histor
 - [ ] **Mapa interactivo (`/explorar`):** Navegar por los países hispanoamericanos, cambiar las capas temáticas (política, PIB, población, IDH) y seleccionar un país para desplegar el panel lateral con sus indicadores y lugares.
 - [ ] **Ubicar desde ficha:** Hacer clic en un lugar para centrar la cámara y abrir el marcador del sitio.
 
-### Paso 2: Sección Unificada de Patrimonio Cultural (`/cultura` y `/patrimonios`)
-- [ ] **Acceso a la vista unificada:** Ingresar a `/cultura` (o el alias `/patrimonios`).
+### Paso 2: Sección Unificada de Patrimonio Cultural (`/patrimonios`)
+- [ ] **Acceso a la vista unificada:** Ingresar a `/patrimonios` (las rutas anteriores `/cultura` y `/arte` redirigen limpiamente aquí).
 - [ ] **Filtros compartidos:** Probar los filtros por categoría (`PATRIMONIO`, `HISTORICO`, `GASTRONOMICO`, `ARTE`, `DANZA`, etc.).
 - [ ] **Pestañas de navegación:** Alternar entre *Vista Integral*, *Lugares y Sitios Patrimoniales* y *Tradiciones y Artes*.
 - [ ] **Gastronomía tradicional integrada:** Filtrar por `GASTRONOMICO` y observar tanto los sitios gastronómicos como las expresiones de gastronomía tradicional asociadas.

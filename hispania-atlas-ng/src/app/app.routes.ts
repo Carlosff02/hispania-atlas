@@ -28,10 +28,10 @@ import { autenticadoGuard, rolGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'explorar' },
   { path: 'explorar', component: ExplorarView },
-  { path: 'arte', component: ArteGrid },
   { path: 'hitos', component: Milestones },
-  { path: 'cultura', component: Cultura },
   { path: 'patrimonios', component: Cultura },
+  { path: 'cultura', redirectTo: 'patrimonios' },
+  { path: 'arte', redirectTo: 'patrimonios' },
   { path: 'datos', component: Datos },
 
   /* Sesión. Son las únicas rutas de cuenta y las dos son públicas: si ya hay
