@@ -1,8 +1,29 @@
 <div class="mx-auto max-w-[1600px] px-4 sm:px-6 py-8">
-  <h1 class="font-display text-4xl sm:text-5xl font-bold text-vicblue">
-    Patrimonio y Academias
-  </h1>
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h1 class="font-display text-4xl sm:text-5xl font-bold text-vicblue">
+        Patrimonio Cultural y Expresiones
+      </h1>
+      <p class="text-ink-muted text-sm mt-2">
+        Catálogo unificado de monumentos, lugares históricos, gastronomía y expresiones artísticas de Hispanoamérica.
+      </p>
+    </div>
 
+    <!-- Pestañas de Vista Unificada -->
+    <div class="flex border-b border-paper-border">
+      <button type="button" (click)="setTab('todos')" [ngClass]="tabClass('todos')">
+        Vista Integral
+      </button>
+      <button type="button" (click)="setTab('lugares')" [ngClass]="tabClass('lugares')">
+        Lugares y Monumentos ({{ lugaresFiltrados().length }})
+      </button>
+      <button type="button" (click)="setTab('expresiones')" [ngClass]="tabClass('expresiones')">
+        Tradiciones y Artes ({{ expresionesFiltradas().length }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros Compartida -->
   <div class="flex gap-2 mt-8 overflow-x-auto pb-2 border-b border-paper-border">
     @for (cat of categorias; track cat) {
       <button type="button" (click)="setFiltro(cat)" [ngClass]="filterClass(cat)">
@@ -11,42 +32,115 @@
     }
   </div>
 
-  <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    @for (p of listaFiltrada(); track p.id) {
-      <div
-        class="bg-paper-light border border-paper-border overflow-hidden flex flex-col justify-between"
-      >
-        @if (p.img) {
-          <img [src]="p.img" [alt]="p.name" class="w-full h-40 object-cover" />
-        }
+  <!-- SECCIÓN 1: LUGARES Y MONUMENTOS -->
+  @if (tabActiva() === 'todos' || tabActiva() === 'lugares') {
+    <div class="mt-8">
+      @if (tabActiva() === 'todos') {
+        <h2 class="font-display text-2xl font-bold text-vicblue mb-4 flex items-center gap-2">
+          <span>Lugares y Sitios Patrimoniales</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-paper-dark border border-paper-border text-ink-muted">
+            {{ lugaresFiltrados().length }}
+          </span>
+        </h2>
+      }
 
-        <div class="p-5 flex flex-col justify-between flex-1">
-          <div>
-            <div
-              class="flex items-center justify-between border-b border-paper-border pb-2 mb-3"
-            >
-              <span
-                class="text-[10px] px-2 py-0.5 bg-paper-dark text-ink-muted border border-paper-border font-bold uppercase"
-              >
-                {{ p.category }}
-              </span>
-              <span class="text-[11px] text-brass-dark italic font-bold">{{ p.period }}</span>
-            </div>
-            <h3 class="font-display text-2xl font-bold text-vicblue leading-tight">{{ p.name }}</h3>
-            <p class="text-[12px] text-ink-muted italic mt-1">{{ paisDe(p.country) }}</p>
-            <p class="text-[13px] text-ink mt-3 leading-relaxed">{{ p.desc }}</p>
-          </div>
-          <button
-            type="button"
-            (click)="ubicarEnMapa(p.id)"
-            class="mt-5 w-full py-2 bg-paper border border-brass text-ink font-bold text-[13px] hover:bg-brass/20"
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @for (p of lugaresFiltrados(); track p.id) {
+          <div
+            class="bg-paper-light border border-paper-border overflow-hidden flex flex-col justify-between shadow-sm hover:shadow transition-shadow"
           >
-            Ubicar en Cartografía
-          </button>
-        </div>
+            @if (p.img) {
+              <img [src]="p.img" [alt]="p.name" class="w-full h-40 object-cover" />
+            }
+
+            <div class="p-5 flex flex-col justify-between flex-1">
+              <div>
+                <div
+                  class="flex items-center justify-between border-b border-paper-border pb-2 mb-3"
+                >
+                  <span
+                    class="text-[10px] px-2 py-0.5 bg-paper-dark text-ink-muted border border-paper-border font-bold uppercase"
+                  >
+                    {{ p.category }}
+                  </span>
+                  <span class="text-[11px] text-brass-dark italic font-bold">{{ p.period }}</span>
+                </div>
+                <h3 class="font-display text-2xl font-bold text-vicblue leading-tight">{{ p.name }}</h3>
+                <p class="text-[12px] text-ink-muted italic mt-1">{{ paisDe(p.country) }}</p>
+                <p class="text-[13px] text-ink mt-3 leading-relaxed">{{ p.desc }}</p>
+              </div>
+              <button
+                type="button"
+                (click)="ubicarEnMapa(p.id)"
+                class="mt-5 w-full py-2 bg-paper border border-brass text-ink font-bold text-[13px] hover:bg-brass/20 cursor-pointer transition-colors"
+              >
+                Ubicar en Cartografía
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-ink-muted italic text-[13px] col-span-full py-4">
+            No hay lugares registrados bajo este filtro.
+          </p>
+        }
       </div>
-    } @empty {
-      <p class="text-ink-muted italic text-[13px]">No hay lugares en esta categoría.</p>
-    }
-  </div>
+    </div>
+  }
+
+  <!-- SECCIÓN 2: EXPRESIONES CULTURALES Y TRADICIONES -->
+  @if (tabActiva() === 'todos' || tabActiva() === 'expresiones') {
+    <div class="mt-12 pt-8 border-t border-paper-border">
+      @if (tabActiva() === 'todos') {
+        <h2 class="font-display text-2xl font-bold text-vicblue mb-4 flex items-center gap-2">
+          <span>Expresiones Culturales y Tradición Viva</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-paper-dark border border-paper-border text-ink-muted">
+            {{ expresionesFiltradas().length }}
+          </span>
+        </h2>
+      }
+
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        @for (expresion of expresionesFiltradas(); track expresion.id) {
+          <div class="bg-paper border border-paper-border p-4 shadow-vic flex flex-col justify-between">
+            <div>
+              @if (expresion.imagenUrl) {
+                <div class="p-2 border-2 border-paper-border bg-paper-light mb-4">
+                  <img
+                    [src]="expresion.imagenUrl"
+                    [alt]="expresion.titulo"
+                    class="w-full h-48 object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              }
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-brass-dark italic font-bold">
+                  {{ expresion.paisNombre }}
+                </span>
+                <span
+                  class="text-[9px] px-2 py-0.5 bg-paper-dark border border-paper-border text-ink-muted uppercase font-bold"
+                >
+                  {{ expresion.categoriaLabel }}
+                </span>
+              </div>
+              <h3 class="font-display text-2xl font-bold text-vicblue leading-tight mb-2">
+                {{ expresion.titulo }}
+              </h3>
+              <p class="text-[13px] text-ink leading-relaxed">{{ expresion.desc }}</p>
+            </div>
+
+            @if (expresion.creditos) {
+              <p class="mt-4 pt-2 border-t border-paper-border text-[10px] text-ink-muted leading-snug">
+                {{ expresion.creditos }}
+              </p>
+            }
+          </div>
+        } @empty {
+          <p class="text-ink-muted italic text-[13px] col-span-full py-4">
+            No hay expresiones culturales asociadas a este filtro.
+          </p>
+        }
+      </div>
+    </div>
+  }
 </div>

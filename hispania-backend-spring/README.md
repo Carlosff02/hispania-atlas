@@ -716,3 +716,18 @@ así que no se usa `spring.jackson.serialization.write-dates-as-timestamps`.
   "Población" actualiza las tarjetas, pero la línea sigue mostrando el PBI, porque
   `paises_series_historicas` no tiene serie para las demás métricas. Es un problema del
   modelo de datos, no de la arquitectura.
+
+## Sprint VI: Unificación de Patrimonio Cultural y Endurecimiento
+
+Conforme a la solicitud de cambio **RFC-001** y las historias de usuario **HU-22 a HU-24**:
+- **Agregado Raíz de Patrimonio Cultural (HU-22 / 6-1a, 6-1c):**
+  - Implementación de `PatrimonioService` y `PatrimonioServiceImpl` bajo el concepto de agregado raíz.
+  - Endpoints dedicados en `/api/patrimonios` que integran lugares con categoría `PATRIMONIO` y sus expresiones culturales/gastronómicas asociadas.
+  - Preservación y estabilidad total del contrato previo (`/api/places` y `/api/expresiones`) consumido por el frontend Angular.
+- **Endurecimiento del Sistema (HU-23 / 6-2a, 6-2b, 6-2c):**
+  - Manejo global de excepciones unificado mediante `GlobalExceptionHandler` retornando instancias consistentes de `ApiError`.
+  - Validación de entrada rigurosa con Bean Validation (`@Valid`, `@Validated`) en todos los payloads de petición.
+  - Registro de auditoría y trazabilidad con SLF4J (`log.info`, `log.warn`, `log.error`) en todas las operaciones clave.
+- **Cierre y Demostración Guiada (HU-24 / 6-2d, 6-2e, 6-3):**
+  - Suite de pruebas automatizadas en verde (`PatrimonioServiceImplTest`, validadores, controladores y servicios).
+  - Documentación técnica y guía de verificación de demostración lista para la defensa académica.

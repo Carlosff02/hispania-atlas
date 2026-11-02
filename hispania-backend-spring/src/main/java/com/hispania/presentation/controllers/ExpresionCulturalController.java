@@ -2,6 +2,8 @@ package com.hispania.presentation.controllers;
 
 import com.hispania.presentation.dto.response.ExpresionCulturalResponse;
 import com.hispania.services.interfaces.ExpresionCulturalService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,8 @@ import java.util.List;
 @RequestMapping("/api/expresiones")
 public class ExpresionCulturalController {
 
+    private static final Logger log = LoggerFactory.getLogger(ExpresionCulturalController.class);
+
     private final ExpresionCulturalService expresionService;
 
     public ExpresionCulturalController(ExpresionCulturalService expresionService) {
@@ -43,9 +47,8 @@ public class ExpresionCulturalController {
      */
     @GetMapping
     public List<ExpresionCulturalResponse> listar() {
-        List<ExpresionCulturalResponse> expresiones = expresionService.listarTodas();
-        System.out.println(expresiones);
-        return expresiones;
+        log.info("Listando todas las expresiones culturales");
+        return expresionService.listarTodas();
     }
 
     /**
@@ -59,6 +62,7 @@ public class ExpresionCulturalController {
      */
     @GetMapping("/{code}")
     public ResponseEntity<List<ExpresionCulturalResponse>> listarPorPais(@PathVariable String code) {
+        log.info("Listando expresiones culturales para el pais: {}", code);
         List<ExpresionCulturalResponse> expresiones = expresionService.listarPorPais(code);
         return expresiones == null
                 ? ResponseEntity.notFound().build()

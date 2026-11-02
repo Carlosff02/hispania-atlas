@@ -72,6 +72,9 @@ export class Header {
   protected readonly isExplorar = computed(() => this.url() === '/explorar');
 
   protected isActive(path: string): boolean {
+    if (path === '/cultura') {
+      return this.url() === '/cultura' || this.url() === '/patrimonios';
+    }
     return this.url() === path;
   }
 

@@ -4,6 +4,8 @@ import com.hispania.persistence.entity.CategoriaLugar;
 import com.hispania.presentation.dto.request.LugarRequest;
 import com.hispania.presentation.dto.response.LugarResponse;
 import com.hispania.services.interfaces.LugarService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,6 +34,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/places")
 public class LugarController {
+
+    private static final Logger log = LoggerFactory.getLogger(LugarController.class);
 
     private final LugarService lugarService;
 
@@ -100,6 +104,7 @@ public class LugarController {
     @PreAuthorize("@jerarquia.puede(authentication, 'COLABORADOR')")
     public ResponseEntity<LugarResponse> crear(
             @Validated(LugarRequest.OnCreate.class) @RequestBody LugarRequest request) {
+        log.info("Creando nuevo lugar: {} ({})", request.name(), request.country());
         LugarResponse creado = lugarService.crear(request);
 
         // Location permite al cliente pedir el recurso recien creado sin reconstruir la URL.
@@ -123,6 +128,7 @@ public class LugarController {
     public ResponseEntity<LugarResponse> actualizar(@PathVariable String id,
                                                     @Validated(LugarRequest.OnUpdate.class)
                                                     @RequestBody LugarRequest request) {
+        log.info("Actualizando lugar id: {}", id);
         return ResponseEntity.ok(lugarService.actualizar(id, request));
     }
 
@@ -146,6 +152,7 @@ public class LugarController {
     @DeleteMapping("/{id}")
     @PreAuthorize("@jerarquia.puede(authentication, 'ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
+        log.warn("Eliminando lugar id: {}", id);
         lugarService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

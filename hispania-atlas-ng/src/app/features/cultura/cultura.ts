@@ -1,9 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { AppStore } from '../../core/state/app.store';
-import type { CategoriaLugar } from '../../core/models';
+import { ExpressionsService } from '../../core/services/expressions.service';
+import type { CategoriaLugar, ExpresionCultural } from '../../core/models';
 
 /**
  * Filtro especial: 'TODOS' no es una categoría real, por eso el tipo de la
@@ -13,25 +15,25 @@ export type FiltroCategoria = CategoriaLugar | 'TODOS';
 
 export const CATEGORIAS: FiltroCategoria[] = [
   'TODOS',
+  'PATRIMONIO',
+  'HISTORICO',
+  'GASTRONOMICO',
   'ARTE',
   'DANZA',
   'ARQUEOLOGIA',
-  'PATRIMONIO',
-  'HISTORICO',
   'INFRAESTRUCTURA',
   'PAISAJE_NATURAL',
   'ACADEMICO',
-  'GASTRONOMICO',
 ];
 
+export type TabPatrimonio = 'todos' | 'lugares' | 'expresiones';
+
 /**
- * Catálogo de patrimonio y academias. Equivalente de `cultura/Cultura.tsx`.
+ * Catálogo unificado de patrimonio cultural, lugares históricos y tradiciones (HU-22 / RFC-001).
  *
- * El botón "Ubicar en Cartografía" hace DOS cosas distintas con dos
- * herramientas distintas, igual que en React: `store` para el estado
- * compartido (qué país y qué lugar están seleccionados, que es lo que leen
- * CountryPanel y PlaceCard) y `Router` para cambiar la URL. El store no navega
- * y el router no guarda estado.
+ * Integra en una sola sección tanto los lugares físicos (con categorías PATRIMONIO,
+ * GASTRONÓMICO, etc.) como las expresiones culturales y tradiciones inmateriales,
+ * compartiendo filtros y componentes sin duplicar código.
  */
 @Component({
   selector: 'app-cultura',
@@ -41,26 +43,59 @@ export const CATEGORIAS: FiltroCategoria[] = [
 export class Cultura {
   private readonly store = inject(AppStore);
   private readonly router = inject(Router);
+  private readonly expressionsService = inject(ExpressionsService);
 
   protected readonly categorias = CATEGORIAS;
   protected readonly filtro = signal<FiltroCategoria>('TODOS');
+  protected readonly tabActiva = signal<TabPatrimonio>('todos');
   protected readonly byCode = this.store.byCode;
 
-  protected readonly listaFiltrada = computed(() => {
+  protected readonly expresiones = toSignal(this.expressionsService.expresiones$, {
+    initialValue: [] as ExpresionCultural[],
+  });
+
+  protected readonly lugaresFiltrados = computed(() => {
     const f = this.filtro();
     const all = this.store.places();
     return f === 'TODOS' ? all : all.filter((p) => p.category === f);
+  });
+
+  protected readonly expresionesFiltradas = computed(() => {
+    const f = this.filtro();
+    const all = this.expresiones();
+    if (f === 'TODOS') return all;
+    if (f === 'GASTRONOMICO') {
+      return all.filter((e) => e.categoria === 'GASTRONOMIA');
+    }
+    if (f === 'ARTE') {
+      return all.filter((e) => ['PINTURA', 'ESCULTURA'].includes(e.categoria));
+    }
+    if (f === 'DANZA') {
+      return all.filter((e) => ['DANZA', 'MUSICA'].includes(e.categoria));
+    }
+    return [];
   });
 
   protected setFiltro(cat: FiltroCategoria): void {
     this.filtro.set(cat);
   }
 
+  protected setTab(tab: TabPatrimonio): void {
+    this.tabActiva.set(tab);
+  }
+
   protected filterClass(cat: FiltroCategoria): string {
-    const base = 'px-4 py-1 text-[13px] border transition-all whitespace-nowrap';
+    const base = 'px-4 py-1 text-[13px] border transition-all whitespace-nowrap cursor-pointer';
     return this.filtro() === cat
-      ? `${base} bg-vicblue text-paper-light border-ink font-bold`
+      ? `${base} bg-vicblue text-paper-light border-ink font-bold shadow-sm`
       : `${base} bg-paper-light border-paper-border text-ink hover:bg-paper-dark`;
+  }
+
+  protected tabClass(tab: TabPatrimonio): string {
+    const base = 'px-4 py-2 text-sm font-bold border-b-2 transition-colors cursor-pointer';
+    return this.tabActiva() === tab
+      ? `${base} border-vicblue text-vicblue bg-vicblue/5`
+      : `${base} border-transparent text-ink-muted hover:text-ink`;
   }
 
   protected paisDe(codigo: string): string | undefined {
