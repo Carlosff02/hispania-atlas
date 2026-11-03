@@ -15,32 +15,65 @@
       </p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="enviar()" class="px-8 py-6 space-y-5">
-      <label class="block">
-        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-          >Usuario</span
+    <form [formGroup]="form" (ngSubmit)="enviar()" class="px-8 py-6 space-y-5" novalidate>
+      <div>
+        <label
+          for="login-username"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Usuario</label
         >
         <input
+          id="login-username"
           type="text"
           formControlName="username"
           autocomplete="username"
           placeholder="tu_usuario"
-          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          class="w-full px-3 py-2.5 bg-vicblue-dark border text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none"
+          [ngClass]="controlMarcado('username') ? 'border-red-400' : 'border-brass/30 focus:border-brass'"
+          [attr.aria-invalid]="controlMarcado('username')"
+          [attr.aria-describedby]="controlMarcado('username') ? 'error-login-username' : null"
         />
-      </label>
+        @if (controlMarcado('username')) {
+          <p id="error-login-username" class="mt-1 text-[11px] text-red-300">
+            Escribe tu nombre de usuario.
+          </p>
+        }
+      </div>
 
-      <label class="block">
-        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-          >Contraseña</span
+      <div>
+        <label
+          for="login-password"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Contraseña</label
         >
-        <input
-          type="password"
-          formControlName="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
-        />
-      </label>
+        <div class="relative">
+          <input
+            id="login-password"
+            [type]="verPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full pl-3 pr-20 py-2.5 bg-vicblue-dark border text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none"
+            [ngClass]="controlMarcado('password') ? 'border-red-400' : 'border-brass/30 focus:border-brass'"
+            [attr.aria-invalid]="controlMarcado('password')"
+            [attr.aria-describedby]="controlMarcado('password') ? 'error-login-password' : null"
+          />
+          <button
+            type="button"
+            (click)="verPassword.set(!verPassword())"
+            [attr.aria-pressed]="verPassword()"
+            [attr.aria-label]="verPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            class="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-paper-dark hover:text-brass-light"
+          >
+            {{ verPassword() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+        @if (controlMarcado('password')) {
+          <p id="error-login-password" class="mt-1 text-[11px] text-red-300">
+            Escribe tu contraseña.
+          </p>
+        }
+      </div>
 
       @if (error()) {
         <p

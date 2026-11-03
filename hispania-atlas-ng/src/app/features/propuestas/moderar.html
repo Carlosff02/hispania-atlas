@@ -78,7 +78,7 @@
             <div class="mt-4 flex items-center gap-2">
               <button
                 type="button"
-                (click)="aprobar(p)"
+                (click)="solicitarAprobacion(p)"
                 [disabled]="procesando() !== null"
                 class="px-4 py-2 text-xs font-bold tracking-[0.1em] uppercase rounded-sm border border-emerald-400/60 text-emerald-200 hover:bg-emerald-500/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -138,3 +138,16 @@
     }
   </div>
 </div>
+
+<app-confirm-dialog
+  [abierto]="aprobando() !== null"
+  titulo="Aprobar propuesta"
+  [mensaje]="
+    '¿Aprobar «' +
+    (aprobando()?.nombre ?? '') +
+    '»? Se creará en el atlas y saldrá de la cola de revisión.'
+  "
+  textoConfirmar="Sí, aprobar"
+  (confirmado)="confirmarAprobacion()"
+  (cancelado)="cancelarAprobacion()"
+/>

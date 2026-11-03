@@ -25,11 +25,12 @@ import { ETIQUETA_ROL, ROLES, puedeAsignar, puedeModificar } from '../../core/au
 import { mensajeDeError } from '../../core/http/api-error';
 import { AdminService } from '../../core/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import type { Rol, Usuario } from '../../core/models';
 
 @Component({
   selector: 'app-usuarios',
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, ConfirmDialog],
   templateUrl: './usuarios.html',
 })
 export class Usuarios {
@@ -41,6 +42,9 @@ export class Usuarios {
   protected readonly procesando = signal<number | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly aviso = signal<string | null>(null);
+
+  /** Cuenta cuya activación/desactivación está pendiente de confirmar. */
+  protected readonly confirmandoEstado = signal<Usuario | null>(null);
 
   /** Filtro por rol. `''` es "todos"; el enum no tiene valor vacío. */
   protected readonly filtro = signal<Rol | ''>('');
@@ -92,6 +96,21 @@ export class Usuarios {
       (id) => this.admin.cambiarEstado(id, !u.activo),
       u.activo ? 'Cuenta desactivada' : 'Cuenta activada',
     );
+  }
+
+  /** Desactivar corta el acceso: se confirma antes de tocar nada. */
+  protected pedirCambioEstado(u: Usuario): void {
+    this.confirmandoEstado.set(u);
+  }
+
+  protected cancelarCambioEstado(): void {
+    this.confirmandoEstado.set(null);
+  }
+
+  protected confirmarCambioEstado(): void {
+    const u = this.confirmandoEstado();
+    this.confirmandoEstado.set(null);
+    if (u) void this.alternarActivo(u);
   }
 
   /**

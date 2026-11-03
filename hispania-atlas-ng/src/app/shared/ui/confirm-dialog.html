@@ -1,0 +1,46 @@
+@if (abierto()) {
+  <div
+    class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 px-4"
+    (mousedown)="cancelar()"
+  >
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-dialog-titulo"
+      aria-describedby="confirm-dialog-mensaje"
+      class="w-full max-w-md bg-paper border-2 border-brass shadow-vic"
+      (mousedown)="$event.stopPropagation()"
+    >
+      <div class="px-5 py-4 border-b border-paper-border">
+        <h2
+          id="confirm-dialog-titulo"
+          class="font-display text-xl font-bold text-vicblue leading-tight"
+        >
+          {{ titulo() }}
+        </h2>
+      </div>
+
+      <p id="confirm-dialog-mensaje" class="px-5 py-4 text-sm text-ink leading-relaxed">
+        {{ mensaje() }}
+      </p>
+
+      <div class="flex justify-end gap-2 px-5 py-4 border-t border-paper-border bg-paper-light">
+        <button
+          type="button"
+          (click)="cancelar()"
+          class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] border border-paper-border text-ink rounded-sm hover:bg-paper-dark transition-colors"
+        >
+          {{ textoCancelar() }}
+        </button>
+        <button
+          #botonConfirmar
+          type="button"
+          (click)="confirmar()"
+          [class]="claseConfirmar()"
+        >
+          {{ textoConfirmar() }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -15,84 +15,149 @@
       </p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="enviar()" class="px-8 py-6 space-y-4">
-      <label class="block">
-        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-          >Usuario</span
+    <form [formGroup]="form" (ngSubmit)="enviar()" class="px-8 py-6 space-y-4" novalidate>
+      <div>
+        <label
+          for="registro-username"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Usuario</label
         >
         <input
+          id="registro-username"
           type="text"
           formControlName="username"
           autocomplete="username"
           placeholder="solo letras, números y guion bajo"
-          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          class="w-full px-3 py-2.5 bg-vicblue-dark border rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none"
+          [ngClass]="
+            controlMarcado('username')
+              ? 'border-red-400'
+              : 'border-brass/30 focus:border-brass'
+          "
+          [attr.aria-invalid]="controlMarcado('username')"
+          [attr.aria-describedby]="controlMarcado('username') ? 'error-registro-username' : null"
         />
         @if (controlMarcado('username')) {
-          <span class="block mt-1 text-[11px] text-red-300">
-            Entre 3 y 30 caracteres, solo letras, números y guion bajo.
-          </span>
+          <p id="error-registro-username" class="mt-1 text-[11px] text-red-300">
+            {{ errorDe('username') }}
+          </p>
         }
-      </label>
+      </div>
 
-      <label class="block">
-        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-          >Nombre visible (opcional)</span
+      <div>
+        <label
+          for="registro-nombre"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Nombre visible (opcional)</label
         >
         <input
+          id="registro-nombre"
           type="text"
           formControlName="nombre"
           autocomplete="name"
           placeholder="como te verán los colaboradores"
           class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
         />
-      </label>
+      </div>
 
-      <label class="block">
-        <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-          >Email</span
+      <div>
+        <label
+          for="registro-email"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Email</label
         >
         <input
+          id="registro-email"
           type="email"
           formControlName="email"
           autocomplete="email"
           placeholder="tu@correo.com"
-          class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+          class="w-full px-3 py-2.5 bg-vicblue-dark border rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none"
+          [ngClass]="
+            controlMarcado('email') ? 'border-red-400' : 'border-brass/30 focus:border-brass'
+          "
+          [attr.aria-invalid]="controlMarcado('email')"
+          [attr.aria-describedby]="controlMarcado('email') ? 'error-registro-email' : null"
         />
         @if (controlMarcado('email')) {
-          <span class="block mt-1 text-[11px] text-red-300">El email no es válido.</span>
+          <p id="error-registro-email" class="mt-1 text-[11px] text-red-300">
+            {{ errorDe('email') }}
+          </p>
         }
-      </label>
+      </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <label class="block">
-          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-            >Contraseña</span
-          >
+      <div>
+        <label
+          for="registro-password"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Contraseña</label
+        >
+        <div class="relative">
           <input
-            type="password"
+            id="registro-password"
+            [type]="verPassword() ? 'text' : 'password'"
             formControlName="password"
             autocomplete="new-password"
-            placeholder="mín. 8"
-            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
+            placeholder="mínimo 8 caracteres"
+            class="w-full pl-3 pr-20 py-2.5 bg-vicblue-dark border rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none"
+            [ngClass]="
+              controlMarcado('password') ? 'border-red-400' : 'border-brass/30 focus:border-brass'
+            "
+            [attr.aria-invalid]="controlMarcado('password')"
+            [attr.aria-describedby]="
+              controlMarcado('password') ? 'error-registro-password' : 'ayuda-registro-password'
+            "
           />
-        </label>
-
-        <label class="block">
-          <span class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
-            >Repetir</span
+          <button
+            type="button"
+            (click)="verPassword.set(!verPassword())"
+            [attr.aria-pressed]="verPassword()"
+            [attr.aria-label]="verPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            class="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-paper-dark hover:text-brass-light"
           >
-          <input
-            type="password"
-            formControlName="repetirPassword"
-            autocomplete="new-password"
-            placeholder="••••••••"
-            class="w-full px-3 py-2.5 bg-vicblue-dark border border-brass/30 rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none focus:border-brass"
-          />
-        </label>
+            {{ verPassword() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+        @if (controlMarcado('password')) {
+          <p id="error-registro-password" class="mt-1 text-[11px] text-red-300">
+            {{ errorDe('password') }}
+          </p>
+        } @else {
+          <p id="ayuda-registro-password" class="mt-1 text-[10px] text-paper-dark">
+            Al menos 8 caracteres.
+          </p>
+        }
       </div>
-      @if (controlMarcado('password')) {
-        <p class="text-[11px] text-red-300 -mt-2">La contraseña necesita al menos 8 caracteres.</p>
-      }
+
+      <div>
+        <label
+          for="registro-repetir"
+          class="block text-[11px] tracking-[0.2em] uppercase text-paper-dark mb-1.5"
+          >Repetir contraseña</label
+        >
+        <input
+          id="registro-repetir"
+          type="password"
+          formControlName="repetirPassword"
+          autocomplete="new-password"
+          placeholder="••••••••"
+          class="w-full px-3 py-2.5 bg-vicblue-dark border rounded-sm text-paper-light text-sm placeholder:text-paper-dark/50 focus:outline-none"
+          [ngClass]="
+            controlMarcado('repetirPassword')
+              ? 'border-red-400'
+              : 'border-brass/30 focus:border-brass'
+          "
+          [attr.aria-invalid]="controlMarcado('repetirPassword')"
+          [attr.aria-describedby]="
+            controlMarcado('repetirPassword') ? 'error-registro-repetir' : null
+          "
+        />
+        @if (controlMarcado('repetirPassword')) {
+          <p id="error-registro-repetir" class="mt-1 text-[11px] text-red-300">
+            {{ errorDe('repetirPassword') }}
+          </p>
+        }
+      </div>
 
       @if (error()) {
         <p

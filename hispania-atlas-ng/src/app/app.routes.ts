@@ -15,7 +15,6 @@ import { Login } from './features/auth/login';
 import { Registro } from './features/auth/registro';
 import { SinPermiso } from './features/auth/sin-permiso';
 import { Usuarios } from './features/admin/usuarios';
-import { ArteGrid } from './features/arte/arte-grid';
 import { Cultura } from './features/cultura/cultura';
 import { Datos } from './features/datos/datos';
 import { Milestones } from './features/hitos/milestones';

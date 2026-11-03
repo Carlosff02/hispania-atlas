@@ -9,7 +9,16 @@
  * sin arrastrar la navegación entera. La cabecera le pasa el token y el estado
  * del desplegable; el menú no necesita conocer la barra de navegación.
  */
-import { Component, ElementRef, computed, inject, output, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -52,17 +61,42 @@ const MENU_ITEMS: MenuItem[] = [
   // de clic no es accesible: no tiene foco ni se puede activar con el teclado,
   // y el linter lo rechaza. Comparando el destino del clic con este elemento
   // no hace falta ni Propagation.stop.
-  host: { '(document:click)': 'cerrarSiEstaFuera($event)' },
+  host: {
+    '(document:click)': 'cerrarSiEstaFuera($event)',
+    '(document:keydown.escape)': 'alPulsarEscape()',
+  },
 })
 export class AccountMenu {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
+  private readonly boton = viewChild<ElementRef<HTMLButtonElement>>('botonCuenta');
+  private readonly panel = viewChild<ElementRef<HTMLElement>>('panelMenu');
+
   /** Avisa a la cabecera de que el móvil debe cerrar el menú de navegación. */
   readonly navegar = output<void>();
 
   protected readonly abierto = signal(false);
+
+  constructor() {
+    /*
+     * Al abrir, el foco entra en el primer enlace. Sin esto, quien navega con
+     * teclado abre el menú y sigue en el botón, sin manera de saber que hay
+     * opciones debajo. Al cerrar se devuelve el foco al botón para no perderlo
+     * en el `body`.
+     */
+    effect((onCleanup) => {
+      if (!this.abierto()) return;
+      queueMicrotask(() => {
+        this.panel()?.nativeElement.querySelector<HTMLElement>('a, button')?.focus();
+      });
+      onCleanup(() => {
+        // Solo se devuelve el foco si se cerró con el menú aún en pantalla.
+        this.boton()?.nativeElement.focus();
+      });
+    });
+  }
 
   protected readonly autenticado = this.auth.autenticado;
   protected readonly usuario = this.auth.usuario;
@@ -91,6 +125,11 @@ export class AccountMenu {
     if (!this.host.nativeElement.contains(event.target as Node)) {
       this.cerrar();
     }
+  }
+
+  /** Escape cierra el desplegable, esté donde esté el foco dentro de él. */
+  protected alPulsarEscape(): void {
+    if (this.abierto()) this.cerrar();
   }
 
   protected salir(): void {

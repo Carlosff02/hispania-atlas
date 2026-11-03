@@ -86,22 +86,37 @@ export class ExpressionsService {
   private readonly refreshSubject = new BehaviorSubject<void>(undefined);
 
   /**
+   * Estado de la última carga, para que la vista pueda distinguir "todavía no
+   * llegó" de "no hay datos". Sin esto, una lista vacía durante la petición se
+   * pinta como "no hay expresiones", que es una afirmación falsa.
+   */
+  private readonly cargandoSubject = new BehaviorSubject<boolean>(true);
+  private readonly errorSubject = new BehaviorSubject<boolean>(false);
+  readonly cargando$ = this.cargandoSubject.asObservable();
+  readonly errorCarga$ = this.errorSubject.asObservable();
+
+  /**
    * Observable de todas las expresiones. Se actualiza cuando se crea, edita o elimina una.
    */
   readonly expresiones$: Observable<ExpresionCultural[]> = this.refreshSubject.pipe(
-    switchMap(() =>
-      this.http.get<ExpresionCulturalDto[]>(`${this.baseUrl}/expresiones`).pipe(
+    switchMap(() => {
+      this.cargandoSubject.next(true);
+      this.errorSubject.next(false);
+      return this.http.get<ExpresionCulturalDto[]>(`${this.baseUrl}/expresiones`).pipe(
         map((data) =>
           data
             .map(mapExpresionDTO)
             .filter((e): e is ExpresionCultural => e !== null),
         ),
+        tap(() => this.cargandoSubject.next(false)),
         catchError((err: HttpErrorResponse) => {
           console.warn(`Backend unavailable (${err.status}) al cargar /expresiones`);
+          this.errorSubject.next(true);
+          this.cargandoSubject.next(false);
           return of([] as ExpresionCultural[]);
         }),
-      ),
-    ),
+      );
+    }),
   );
 
   recargar(): void {

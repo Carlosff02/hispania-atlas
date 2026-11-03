@@ -22,9 +22,13 @@
       </span>
     </a>
 
-    <nav class="hidden lg:flex items-center gap-1 ml-6">
+    <nav class="hidden lg:flex items-center gap-1 ml-6" aria-label="Navegación principal">
       @for (item of navItems; track item.path) {
-        <a [routerLink]="item.path" [ngClass]="desktopLinkClass(item.path)">
+        <a
+          [routerLink]="item.path"
+          [ngClass]="desktopLinkClass(item.path)"
+          [attr.aria-current]="isActive(item.path) ? 'page' : null"
+        >
           {{ item.label }}
         </a>
       }
@@ -38,9 +42,14 @@
 
   <nav
     class="lg:hidden flex items-center gap-1 px-4 pb-2 overflow-x-auto bg-vicblue-dark border-t border-brass/20"
+    aria-label="Navegación principal móvil"
   >
     @for (item of navItems; track item.path) {
-      <a [routerLink]="item.path" [ngClass]="mobileLinkClass(item.path)">
+      <a
+        [routerLink]="item.path"
+        [ngClass]="mobileLinkClass(item.path)"
+        [attr.aria-current]="isActive(item.path) ? 'page' : null"
+      >
         {{ item.label }}
       </a>
     }

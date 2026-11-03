@@ -5,8 +5,21 @@
  * Permite crear, actualizar y eliminar cualquiera de las dos entidades de patrimonio
  * directamente a usuarios con rol COLABORADOR o superior.
  */
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -16,6 +29,13 @@ import { PlacesService } from '../../core/services/places.service';
 import { ExpressionsService } from '../../core/services/expressions.service';
 import { AppStore } from '../../core/state/app.store';
 import { mensajeDeError } from '../../core/http/api-error';
+import {
+  DESCRIPCION_CATEGORIA_LUGAR,
+  etiquetaCategoria,
+  etiquetaCategoriaExpresion,
+  etiquetaIcono,
+} from '../../core/ui/labels';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { idValido, sugerirId } from './slug';
 import type {
   CategoriaExpresion,
@@ -43,9 +63,36 @@ const ICONOS: string[] = ['landmark', 'building', 'palette', 'music', 'tree'];
 
 export type TipoGestion = 'lugares' | 'expresiones';
 
+/** Un borrado pendiente de confirmar, con el tipo para saber qué endpoint llamar. */
+interface BorradoPendiente {
+  tipo: TipoGestion;
+  id: string;
+  nombre: string;
+}
+
+/**
+ * Valida un rango numérico. `min`/`max` en el input no impiden teclear fuera de
+ * rango ni pegar un valor, así que la regla viaja también en el formulario.
+ */
+function rango(min: number, max: number) {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (control.value === '' || control.value === null) return null;
+    const valor = Number(control.value);
+    if (Number.isNaN(valor)) return { numero: true };
+    return valor < min || valor > max ? { rango: { min, max } } : null;
+  };
+}
+
+/** La URL de imagen es opcional; si se rellena, tiene que ser http(s). */
+function urlOpcional(control: AbstractControl): ValidationErrors | null {
+  const valor = String(control.value ?? '').trim();
+  if (valor === '') return null;
+  return /^https?:\/\/\S+$/i.test(valor) ? null : { url: true };
+}
+
 @Component({
   selector: 'app-lugares',
-  imports: [ReactiveFormsModule, NgClass],
+  imports: [ReactiveFormsModule, NgClass, ConfirmDialog],
   templateUrl: './lugares.html',
 })
 export class Lugares {
@@ -63,12 +110,21 @@ export class Lugares {
   protected readonly iconos = ICONOS;
   protected readonly paises = signal<Pais[]>([]);
 
+  protected readonly etiquetaCategoria = etiquetaCategoria;
+  protected readonly etiquetaCategoriaExpresion = etiquetaCategoriaExpresion;
+  protected readonly etiquetaIcono = etiquetaIcono;
+  protected readonly descripcionCategoria = DESCRIPCION_CATEGORIA_LUGAR;
+
   /* Lista de lugares */
   protected readonly lugares = this.store.places;
+  protected readonly cargandoLugares = this.store.loading;
 
   /* Lista de expresiones culturales */
   protected readonly expresiones = toSignal(this.expressionsService.expresiones$, {
     initialValue: [] as ExpresionCultural[],
+  });
+  protected readonly cargandoExpresiones = toSignal(this.expressionsService.cargando$, {
+    initialValue: true,
   });
 
   protected readonly error = signal<string | null>(null);
@@ -77,10 +133,14 @@ export class Lugares {
   protected readonly borrando = signal<string | null>(null);
 
   protected readonly editando = signal<string | null>(null);
-  protected readonly confirmando = signal<string | null>(null);
+  protected readonly formularioAbierto = signal(false);
+  protected readonly borradoPendiente = signal<BorradoPendiente | null>(null);
 
   protected readonly filtro = signal('');
   protected readonly puedeBorrar = computed(() => this.auth.puede('ADMIN'));
+
+  private readonly contenedorFormulario =
+    viewChild<ElementRef<HTMLElement>>('contenedorFormulario');
 
   /* Filtrados lugares */
   protected readonly filtradosLugares = computed<Lugar[]>(() => {
@@ -90,7 +150,8 @@ export class Lugares {
       (l) =>
         l.name.toLowerCase().includes(texto) ||
         l.id.toLowerCase().includes(texto) ||
-        l.country.toLowerCase().includes(texto),
+        l.country.toLowerCase().includes(texto) ||
+        this.nombrePais(l.country).toLowerCase().includes(texto),
     );
   });
 
@@ -110,26 +171,26 @@ export class Lugares {
 
   /* Formulario Lugares */
   protected readonly form = this.fb.nonNullable.group({
-    id: [''],
+    id: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-z0-9_]+$/)]],
     name: ['', [Validators.required, Validators.maxLength(150)]],
     country: ['', [Validators.required]],
-    lat: ['', [Validators.required]],
-    lng: ['', [Validators.required]],
+    lat: ['', [Validators.required, rango(-90, 90)]],
+    lng: ['', [Validators.required, rango(-180, 180)]],
     category: ['PATRIMONIO' as CategoriaLugar, [Validators.required]],
     icon: ['landmark'],
-    period: [''],
+    period: ['', [Validators.maxLength(50)]],
     descText: ['', [Validators.maxLength(1000)]],
-    img: ['', [Validators.maxLength(500)]],
+    img: ['', [Validators.maxLength(500), urlOpcional]],
   });
 
   /* Formulario Expresiones Culturales */
   protected readonly formExpresion = this.fb.nonNullable.group({
-    id: [''],
+    id: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-z0-9_]+$/)]],
     titulo: ['', [Validators.required, Validators.maxLength(150)]],
     categoria: ['DANZA' as CategoriaExpresion, [Validators.required]],
     country: ['', [Validators.required]],
     descText: ['', [Validators.required, Validators.maxLength(1000)]],
-    imagen: ['', [Validators.maxLength(500)]],
+    imagen: ['', [Validators.maxLength(500), urlOpcional]],
     creditos: ['', [Validators.maxLength(300)]],
   });
 
@@ -147,6 +208,48 @@ export class Lugares {
         this.formExpresion.controls.id.setValue(sugerirId(titulo), { emitEvent: false });
       }
     });
+  }
+
+  /* ---------------- Utilidades de presentación ---------------- */
+
+  protected nombrePais(codigo: string): string {
+    return this.paises().find((p) => p.code === codigo)?.name ?? codigo;
+  }
+
+  protected campoInvalido(campo: string): boolean {
+    const control =
+      this.tipoGestion() === 'lugares' ? this.form.get(campo) : this.formExpresion.get(campo);
+    return !!control && control.touched && control.invalid;
+  }
+
+  /** Mensaje concreto por campo, para no obligar a adivinar qué falta. */
+  protected errorDe(campo: string): string {
+    const control =
+      this.tipoGestion() === 'lugares' ? this.form.get(campo) : this.formExpresion.get(campo);
+    if (!control || !control.touched || control.valid) return '';
+
+    const errores = control.errors ?? {};
+    if (errores['required']) {
+      return campo === 'id'
+        ? 'El identificador es obligatorio.'
+        : 'Este campo es obligatorio.';
+    }
+    if (errores['pattern']) {
+      return 'Solo minúsculas, dígitos y guion bajo (sin espacios ni tildes).';
+    }
+    if (errores['maxlength']) {
+      return `Máximo ${errores['maxlength'].requiredLength} caracteres.`;
+    }
+    if (errores['rango']) {
+      return `Debe estar entre ${errores['rango'].min} y ${errores['rango'].max}.`;
+    }
+    if (errores['numero']) {
+      return 'Escribe un número válido.';
+    }
+    if (errores['url']) {
+      return 'La dirección debe empezar por http:// o https://.';
+    }
+    return 'Revisa este campo.';
   }
 
   private async cargarPaises(): Promise<void> {
@@ -169,12 +272,34 @@ export class Lugares {
     this.aviso.set(null);
   }
 
+  /** Abre el formulario vacío y lleva el foco al primer campo. */
+  protected abrirNuevo(): void {
+    this.editando.set(null);
+    this.resetFormularios();
+    this.formularioAbierto.set(true);
+    this.error.set(null);
+    this.aviso.set(null);
+    this.enfocarFormulario();
+  }
+
+  private enfocarFormulario(): void {
+    queueMicrotask(() => {
+      this.contenedorFormulario()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      const primerCampo =
+        this.tipoGestion() === 'lugares' ? 'lugar-name' : 'expresion-titulo';
+      document.getElementById(primerCampo)?.focus();
+    });
+  }
+
   /* ---------------- Edición Lugares ---------------- */
   protected editar(l: Lugar): void {
     this.error.set(null);
     this.aviso.set(null);
-    this.confirmando.set(null);
     this.editando.set(l.id);
+    this.formularioAbierto.set(true);
 
     this.form.reset({
       id: l.id,
@@ -189,14 +314,15 @@ export class Lugares {
       img: l.img || '',
     });
     this.form.controls.id.disable();
+    this.enfocarFormulario();
   }
 
   /* ---------------- Edición Expresiones ---------------- */
   protected editarExpresion(e: ExpresionCultural): void {
     this.error.set(null);
     this.aviso.set(null);
-    this.confirmando.set(null);
     this.editando.set(e.id);
+    this.formularioAbierto.set(true);
 
     this.formExpresion.reset({
       id: e.id,
@@ -208,11 +334,16 @@ export class Lugares {
       creditos: e.creditos || '',
     });
     this.formExpresion.controls.id.disable();
+    this.enfocarFormulario();
   }
 
   protected cancelarEdicion(): void {
     this.editando.set(null);
-    this.confirmando.set(null);
+    this.formularioAbierto.set(false);
+    this.resetFormularios();
+  }
+
+  private resetFormularios(): void {
     this.form.reset({
       id: '',
       name: '',
@@ -258,23 +389,12 @@ export class Lugares {
       return;
     }
 
-    const lat = Number(val.lat);
-    const lng = Number(val.lng);
-    if (isNaN(lat) || lat < -90 || lat > 90) {
-      this.error.set('La latitud debe ser un número entre -90 y 90.');
-      return;
-    }
-    if (isNaN(lng) || lng < -180 || lng > 180) {
-      this.error.set('La longitud debe ser un número entre -180 y 180.');
-      return;
-    }
-
     const req: LugarRequest = {
       id: esAlta ? val.id : null,
       name: val.name.trim(),
       country: val.country,
-      lat,
-      lng,
+      lat: Number(val.lat),
+      lng: Number(val.lng),
       category: val.category,
       icon: textoOpcional(val.icon),
       period: textoOpcional(val.period),
@@ -348,12 +468,29 @@ export class Lugares {
   }
 
   /* ---------------- Borrado ---------------- */
-  protected pedirBorrado(id: string): void {
-    this.confirmando.set(id);
+
+  /**
+   * No borra: abre el diálogo. Antes el botón pedía confirmación en la propia
+   * fila, pero la acción es irreversible y merecía el mismo diálogo accesible
+   * que el resto de acciones destructivas (Escape, foco, texto explícito).
+   */
+  protected pedirBorrado(tipo: TipoGestion, id: string, nombre: string): void {
+    this.borradoPendiente.set({ tipo, id, nombre });
   }
 
   protected cancelarBorrado(): void {
-    this.confirmando.set(null);
+    this.borradoPendiente.set(null);
+  }
+
+  protected borrarPendiente(): void {
+    const pendiente = this.borradoPendiente();
+    if (!pendiente) return;
+    this.borradoPendiente.set(null);
+    if (pendiente.tipo === 'lugares') {
+      void this.confirmarBorradoLugar(pendiente.id);
+    } else {
+      this.confirmarBorradoExpresion(pendiente.id);
+    }
   }
 
   protected async confirmarBorradoLugar(id: string): Promise<void> {
@@ -361,7 +498,6 @@ export class Lugares {
     this.error.set(null);
     try {
       await this.places.eliminar(id);
-      this.confirmando.set(null);
       this.aviso.set('Lugar eliminado.');
       if (this.editando() === id) {
         this.cancelarEdicion();
@@ -380,7 +516,6 @@ export class Lugares {
     this.expressionsService.eliminar(id).subscribe({
       next: () => {
         this.borrando.set(null);
-        this.confirmando.set(null);
         this.aviso.set('Expresión cultural eliminada.');
         if (this.editando() === id) {
           this.cancelarEdicion();
@@ -408,14 +543,6 @@ export class Lugares {
   protected textoBoton(): string {
     if (this.guardando()) return 'Guardando…';
     return this.editando() === null ? 'Crear' : 'Guardar cambios';
-  }
-
-  protected controlMarcado(name: string): boolean {
-    const control =
-      this.tipoGestion() === 'lugares'
-        ? this.form.get(name)
-        : this.formExpresion.get(name);
-    return !!control && control.touched && control.invalid;
   }
 }
 

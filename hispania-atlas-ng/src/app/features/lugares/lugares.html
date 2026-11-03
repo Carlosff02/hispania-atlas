@@ -20,6 +20,7 @@
           (click)="cambiarTipo('lugares')"
           class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] transition-colors"
           [ngClass]="tipoGestion() === 'lugares' ? 'bg-brass text-vicblue' : 'text-paper-dark hover:text-paper-light'"
+          [attr.aria-pressed]="tipoGestion() === 'lugares'"
         >
           Sitios Físicos ({{ lugares().length }})
         </button>
@@ -28,20 +29,25 @@
           (click)="cambiarTipo('expresiones')"
           class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] transition-colors border-l border-brass/40"
           [ngClass]="tipoGestion() === 'expresiones' ? 'bg-brass text-vicblue' : 'text-paper-dark hover:text-paper-light'"
+          [attr.aria-pressed]="tipoGestion() === 'expresiones'"
         >
           Expresiones y Tradición ({{ expresiones().length }})
         </button>
       </div>
     </div>
 
-    @if (aviso()) {
-      <p
-        class="mt-5 text-sm text-emerald-200 border border-emerald-400/40 bg-emerald-900/20 rounded-sm px-4 py-3"
-        role="status"
-      >
-        {{ aviso() }}
-      </p>
-    }
+    <!-- Mensajes globales. `aria-live` hace que un lector de pantalla los anuncie
+         sin mover el foco, que es lo que necesita quien acaba de guardar. -->
+    <div aria-live="polite">
+      @if (aviso()) {
+        <p
+          class="mt-5 text-sm text-emerald-200 border border-emerald-400/40 bg-emerald-900/20 rounded-sm px-4 py-3"
+          role="status"
+        >
+          {{ aviso() }}
+        </p>
+      }
+    </div>
     @if (error()) {
       <p
         class="mt-5 text-sm text-red-200 border border-red-400/40 bg-red-900/20 rounded-sm px-4 py-3"
@@ -53,308 +59,517 @@
 
     <!-- ================= FORMULARIO LUGARES ================= -->
     @if (tipoGestion() === 'lugares') {
-      <form
-        [formGroup]="form"
-        (ngSubmit)="guardarLugar()"
-        class="mt-6 bg-vicblue border border-brass/25 rounded-sm p-5 space-y-4 shadow-sm"
-      >
-        <div class="flex items-center justify-between gap-4">
-          <h2 class="text-sm font-bold tracking-[0.15em] uppercase text-brass-light">
-            {{ tituloFormulario() }}
-          </h2>
-          @if (editando() !== null) {
-            <button
-              type="button"
-              (click)="cancelarEdicion()"
-              class="text-[11px] text-paper-dark hover:text-paper-light uppercase tracking-[0.1em]"
-            >
-              Cancelar edición
-            </button>
-          }
-        </div>
-
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Nombre <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="name"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="Ej. Machu Picchu"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Identificador (slug) <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="id"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none disabled:opacity-50"
-              placeholder="machu_picchu"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              País <span class="text-red-400">*</span>
-            </label>
-            <select
-              formControlName="country"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            >
-              @for (p of paises(); track p.code) {
-                <option [value]="p.code">{{ p.name }} ({{ p.code }})</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Categoría <span class="text-red-400">*</span>
-            </label>
-            <select
-              formControlName="category"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            >
-              @for (cat of categoriasLugar; track cat) {
-                <option [value]="cat">{{ cat }}</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Latitud <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="lat"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="-13.163"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Longitud <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="lng"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="-72.545"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Ícono
-            </label>
-            <select
-              formControlName="icon"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            >
-              @for (ic of iconos; track ic) {
-                <option [value]="ic">{{ ic }}</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Período o Fecha
-            </label>
-            <input
-              type="text"
-              formControlName="period"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="Ej. Siglo XV"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-            Descripción
-          </label>
-          <textarea
-            formControlName="descText"
-            rows="3"
-            class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            placeholder="Descripción histórica o turística..."
-          ></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-            URL de Imagen
-          </label>
-          <input
-            type="text"
-            formControlName="img"
-            class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            placeholder="https://..."
-          />
-        </div>
-
-        <div class="flex justify-end gap-3 pt-2">
-          @if (editando() !== null) {
-            <button
-              type="button"
-              (click)="cancelarEdicion()"
-              class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] border border-brass/40 text-paper-light rounded-sm hover:bg-brass/10 transition-colors"
-            >
-              Cancelar
-            </button>
-          }
+      @if (!formularioAbierto()) {
+        <div
+          class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-dashed border-brass/40 rounded-sm px-5 py-4"
+        >
+          <p class="text-sm text-paper-dark">
+            El formulario está cerrado para que la lista quede a la vista.
+          </p>
           <button
-            type="submit"
-            [disabled]="guardando()"
-            class="px-6 py-2 text-xs font-bold uppercase tracking-[0.1em] bg-brass text-vicblue rounded-sm hover:bg-brass-light transition-colors disabled:opacity-50"
+            type="button"
+            (click)="abrirNuevo()"
+            class="shrink-0 px-5 py-2 text-xs font-bold uppercase tracking-[0.1em] bg-brass text-vicblue rounded-sm hover:bg-brass-light transition-colors"
           >
-            {{ textoBoton() }}
+            Nuevo lugar
           </button>
         </div>
-      </form>
+      } @else {
+        <div #contenedorFormulario>
+          <form
+            [formGroup]="form"
+            (ngSubmit)="guardarLugar()"
+            class="mt-6 bg-vicblue border border-brass/25 rounded-sm p-5 space-y-4 shadow-sm"
+            novalidate
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-sm font-bold tracking-[0.15em] uppercase text-brass-light">
+                {{ tituloFormulario() }}
+              </h2>
+              <button
+                type="button"
+                (click)="cancelarEdicion()"
+                class="text-[11px] text-paper-dark hover:text-paper-light uppercase tracking-[0.1em]"
+              >
+                Cerrar formulario
+              </button>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="lugar-name"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Nombre <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="lugar-name"
+                  type="text"
+                  formControlName="name"
+                  maxlength="150"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border"
+                  [ngClass]="campoInvalido('name') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('name')"
+                  [attr.aria-describedby]="campoInvalido('name') ? 'error-lugar-name' : null"
+                  placeholder="Ej. Machu Picchu"
+                />
+                @if (campoInvalido('name')) {
+                  <p id="error-lugar-name" class="mt-1 text-[11px] text-red-300">
+                    {{ errorDe('name') }}
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="lugar-id"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Identificador (slug) <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="lugar-id"
+                  type="text"
+                  formControlName="id"
+                  maxlength="50"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border disabled:opacity-50"
+                  [ngClass]="campoInvalido('id') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('id')"
+                  [attr.aria-describedby]="
+                    campoInvalido('id') ? 'error-lugar-id' : 'ayuda-lugar-id'
+                  "
+                  placeholder="machu_picchu"
+                />
+                @if (campoInvalido('id')) {
+                  <p id="error-lugar-id" class="mt-1 text-[11px] text-red-300">
+                    {{ errorDe('id') }}
+                  </p>
+                } @else {
+                  <p id="ayuda-lugar-id" class="mt-1 text-[10px] text-paper-dark">
+                    Se genera a partir del nombre. Solo minúsculas, números y guion bajo.
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="lugar-country"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  País <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <select
+                  id="lugar-country"
+                  formControlName="country"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                >
+                  @for (p of paises(); track p.code) {
+                    <option [value]="p.code">{{ p.name }} ({{ p.code }})</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label
+                  for="lugar-category"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Categoría <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <select
+                  id="lugar-category"
+                  formControlName="category"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                  aria-describedby="ayuda-lugar-category"
+                >
+                  @for (cat of categoriasLugar; track cat) {
+                    <option [value]="cat">{{ etiquetaCategoria(cat) }}</option>
+                  }
+                </select>
+                <p id="ayuda-lugar-category" class="mt-1 text-[10px] text-paper-dark">
+                  {{ descripcionCategoria[form.controls.category.value] }}
+                </p>
+              </div>
+
+              <div>
+                <label
+                  for="lugar-lat"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Latitud <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="lugar-lat"
+                  type="text"
+                  inputmode="decimal"
+                  formControlName="lat"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border"
+                  [ngClass]="campoInvalido('lat') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('lat')"
+                  [attr.aria-describedby]="campoInvalido('lat') ? 'error-lugar-lat' : 'ayuda-lugar-lat'"
+                  placeholder="-13.163"
+                />
+                @if (campoInvalido('lat')) {
+                  <p id="error-lugar-lat" class="mt-1 text-[11px] text-red-300">
+                    {{ errorDe('lat') }}
+                  </p>
+                } @else {
+                  <p id="ayuda-lugar-lat" class="mt-1 text-[10px] text-paper-dark">
+                    Entre -90 y 90.
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="lugar-lng"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Longitud <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="lugar-lng"
+                  type="text"
+                  inputmode="decimal"
+                  formControlName="lng"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border"
+                  [ngClass]="campoInvalido('lng') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('lng')"
+                  [attr.aria-describedby]="campoInvalido('lng') ? 'error-lugar-lng' : 'ayuda-lugar-lng'"
+                  placeholder="-72.545"
+                />
+                @if (campoInvalido('lng')) {
+                  <p id="error-lugar-lng" class="mt-1 text-[11px] text-red-300">
+                    {{ errorDe('lng') }}
+                  </p>
+                } @else {
+                  <p id="ayuda-lugar-lng" class="mt-1 text-[10px] text-paper-dark">
+                    Entre -180 y 180.
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="lugar-icon"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Ícono
+                </label>
+                <select
+                  id="lugar-icon"
+                  formControlName="icon"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                >
+                  @for (ic of iconos; track ic) {
+                    <option [value]="ic">{{ etiquetaIcono(ic) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label
+                  for="lugar-period"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Período o Fecha
+                </label>
+                <input
+                  id="lugar-period"
+                  type="text"
+                  formControlName="period"
+                  maxlength="50"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                  placeholder="Ej. Siglo XV"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="lugar-desc"
+                class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+              >
+                Descripción
+              </label>
+              <textarea
+                id="lugar-desc"
+                formControlName="descText"
+                rows="3"
+                maxlength="1000"
+                class="w-full bg-vicblue-dark border text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none"
+                [ngClass]="campoInvalido('descText') ? 'border-red-400' : 'border-brass/40'"
+                [attr.aria-invalid]="campoInvalido('descText')"
+                placeholder="Descripción histórica o turística..."
+              ></textarea>
+              @if (campoInvalido('descText')) {
+                <p class="mt-1 text-[11px] text-red-300">{{ errorDe('descText') }}</p>
+              }
+            </div>
+
+            <div>
+              <label
+                for="lugar-img"
+                class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+              >
+                URL de Imagen
+              </label>
+              <input
+                id="lugar-img"
+                type="url"
+                formControlName="img"
+                maxlength="500"
+                class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border"
+                [ngClass]="campoInvalido('img') ? 'border-red-400' : 'border-brass/40'"
+                [attr.aria-invalid]="campoInvalido('img')"
+                placeholder="https://..."
+              />
+              @if (campoInvalido('img')) {
+                <p class="mt-1 text-[11px] text-red-300">{{ errorDe('img') }}</p>
+              }
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                (click)="cancelarEdicion()"
+                class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] border border-brass/40 text-paper-light rounded-sm hover:bg-brass/10 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="guardando()"
+                class="px-6 py-2 text-xs font-bold uppercase tracking-[0.1em] bg-brass text-vicblue rounded-sm hover:bg-brass-light transition-colors disabled:opacity-50"
+              >
+                {{ textoBoton() }}
+              </button>
+            </div>
+          </form>
+        </div>
+      }
     }
 
     <!-- ================= FORMULARIO EXPRESIONES ================= -->
     @if (tipoGestion() === 'expresiones') {
-      <form
-        [formGroup]="formExpresion"
-        (ngSubmit)="guardarExpresion()"
-        class="mt-6 bg-vicblue border border-brass/25 rounded-sm p-5 space-y-4 shadow-sm"
-      >
-        <div class="flex items-center justify-between gap-4">
-          <h2 class="text-sm font-bold tracking-[0.15em] uppercase text-brass-light">
-            {{ tituloFormulario() }}
-          </h2>
-          @if (editando() !== null) {
-            <button
-              type="button"
-              (click)="cancelarEdicion()"
-              class="text-[11px] text-paper-dark hover:text-paper-light uppercase tracking-[0.1em]"
-            >
-              Cancelar edición
-            </button>
-          }
-        </div>
-
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Título / Nombre de Tradición <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="titulo"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="Ej. El Tango"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Identificador (slug) <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="id"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none disabled:opacity-50"
-              placeholder="el_tango"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              País <span class="text-red-400">*</span>
-            </label>
-            <select
-              formControlName="country"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            >
-              @for (p of paises(); track p.code) {
-                <option [value]="p.code">{{ p.name }} ({{ p.code }})</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Disciplina Cultural <span class="text-red-400">*</span>
-            </label>
-            <select
-              formControlName="categoria"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            >
-              @for (cat of categoriasExpresion; track cat) {
-                <option [value]="cat">{{ cat }}</option>
-              }
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-            Descripción de la Tradición / Arte <span class="text-red-400">*</span>
-          </label>
-          <textarea
-            formControlName="descText"
-            rows="3"
-            class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-            placeholder="Reseña del origen, significado cultural y características..."
-          ></textarea>
-        </div>
-
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              URL de Imagen
-            </label>
-            <input
-              type="text"
-              formControlName="imagen"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="https://... o /expresiones/nombre.jpg"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1">
-              Créditos y Licencia de Imagen
-            </label>
-            <input
-              type="text"
-              formControlName="creditos"
-              class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
-              placeholder="Autor, Licencia CC BY / Dominio Público"
-            />
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-2">
-          @if (editando() !== null) {
-            <button
-              type="button"
-              (click)="cancelarEdicion()"
-              class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] border border-brass/40 text-paper-light rounded-sm hover:bg-brass/10 transition-colors"
-            >
-              Cancelar
-            </button>
-          }
+      @if (!formularioAbierto()) {
+        <div
+          class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-dashed border-brass/40 rounded-sm px-5 py-4"
+        >
+          <p class="text-sm text-paper-dark">
+            El formulario está cerrado para que la lista quede a la vista.
+          </p>
           <button
-            type="submit"
-            [disabled]="guardando()"
-            class="px-6 py-2 text-xs font-bold uppercase tracking-[0.1em] bg-brass text-vicblue rounded-sm hover:bg-brass-light transition-colors disabled:opacity-50"
+            type="button"
+            (click)="abrirNuevo()"
+            class="shrink-0 px-5 py-2 text-xs font-bold uppercase tracking-[0.1em] bg-brass text-vicblue rounded-sm hover:bg-brass-light transition-colors"
           >
-            {{ textoBoton() }}
+            Nueva expresión
           </button>
         </div>
-      </form>
+      } @else {
+        <div #contenedorFormulario>
+          <form
+            [formGroup]="formExpresion"
+            (ngSubmit)="guardarExpresion()"
+            class="mt-6 bg-vicblue border border-brass/25 rounded-sm p-5 space-y-4 shadow-sm"
+            novalidate
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-sm font-bold tracking-[0.15em] uppercase text-brass-light">
+                {{ tituloFormulario() }}
+              </h2>
+              <button
+                type="button"
+                (click)="cancelarEdicion()"
+                class="text-[11px] text-paper-dark hover:text-paper-light uppercase tracking-[0.1em]"
+              >
+                Cerrar formulario
+              </button>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="expresion-titulo"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Título / Nombre de Tradición
+                  <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="expresion-titulo"
+                  type="text"
+                  formControlName="titulo"
+                  maxlength="150"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border"
+                  [ngClass]="campoInvalido('titulo') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('titulo')"
+                  [attr.aria-describedby]="campoInvalido('titulo') ? 'error-expresion-titulo' : null"
+                  placeholder="Ej. El Tango"
+                />
+                @if (campoInvalido('titulo')) {
+                  <p id="error-expresion-titulo" class="mt-1 text-[11px] text-red-300">
+                    {{ errorDe('titulo') }}
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="expresion-id"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Identificador (slug) <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <input
+                  id="expresion-id"
+                  type="text"
+                  formControlName="id"
+                  maxlength="50"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border disabled:opacity-50"
+                  [ngClass]="campoInvalido('id') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('id')"
+                  [attr.aria-describedby]="
+                    campoInvalido('id') ? 'error-expresion-id' : 'ayuda-expresion-id'
+                  "
+                  placeholder="el_tango"
+                />
+                @if (campoInvalido('id')) {
+                  <p id="error-expresion-id" class="mt-1 text-[11px] text-red-300">
+                    {{ errorDe('id') }}
+                  </p>
+                } @else {
+                  <p id="ayuda-expresion-id" class="mt-1 text-[10px] text-paper-dark">
+                    Se genera a partir del título. Solo minúsculas, números y guion bajo.
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="expresion-country"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  País <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <select
+                  id="expresion-country"
+                  formControlName="country"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                >
+                  @for (p of paises(); track p.code) {
+                    <option [value]="p.code">{{ p.name }} ({{ p.code }})</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label
+                  for="expresion-categoria"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Disciplina Cultural <span class="text-red-400" aria-hidden="true">*</span>
+                </label>
+                <select
+                  id="expresion-categoria"
+                  formControlName="categoria"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                >
+                  @for (cat of categoriasExpresion; track cat) {
+                    <option [value]="cat">{{ etiquetaCategoriaExpresion(cat) }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="expresion-desc"
+                class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+              >
+                Descripción de la Tradición / Arte
+                <span class="text-red-400" aria-hidden="true">*</span>
+              </label>
+              <textarea
+                id="expresion-desc"
+                formControlName="descText"
+                rows="3"
+                maxlength="1000"
+                class="w-full bg-vicblue-dark border text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none"
+                [ngClass]="campoInvalido('descText') ? 'border-red-400' : 'border-brass/40'"
+                [attr.aria-invalid]="campoInvalido('descText')"
+                [attr.aria-describedby]="campoInvalido('descText') ? 'error-expresion-desc' : null"
+                placeholder="Reseña del origen, significado cultural y características..."
+              ></textarea>
+              @if (campoInvalido('descText')) {
+                <p id="error-expresion-desc" class="mt-1 text-[11px] text-red-300">
+                  {{ errorDe('descText') }}
+                </p>
+              }
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="expresion-imagen"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  URL de Imagen
+                </label>
+                <input
+                  id="expresion-imagen"
+                  type="url"
+                  formControlName="imagen"
+                  maxlength="500"
+                  class="w-full bg-vicblue-dark text-paper-light px-3 py-2 text-sm rounded-sm focus:outline-none border"
+                  [ngClass]="campoInvalido('imagen') ? 'border-red-400' : 'border-brass/40'"
+                  [attr.aria-invalid]="campoInvalido('imagen')"
+                  placeholder="https://... o /expresiones/nombre.jpg"
+                />
+                @if (campoInvalido('imagen')) {
+                  <p class="mt-1 text-[11px] text-red-300">{{ errorDe('imagen') }}</p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="expresion-creditos"
+                  class="block text-xs uppercase font-bold text-paper-light tracking-[0.1em] mb-1"
+                >
+                  Créditos y Licencia de Imagen
+                </label>
+                <input
+                  id="expresion-creditos"
+                  type="text"
+                  formControlName="creditos"
+                  maxlength="300"
+                  class="w-full bg-vicblue-dark border border-brass/40 text-paper-light px-3 py-2 text-sm rounded-sm focus:border-brass focus:outline-none"
+                  placeholder="Autor, Licencia CC BY / Dominio Público"
+                />
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                (click)="cancelarEdicion()"
+                class="px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] border border-brass/40 text-paper-light rounded-sm hover:bg-brass/10 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="guardando()"
+                class="px-6 py-2 text-xs font-bold uppercase tracking-[0.1em] bg-brass text-vicblue rounded-sm hover:bg-brass-light transition-colors disabled:opacity-50"
+              >
+                {{ textoBoton() }}
+              </button>
+            </div>
+          </form>
+        </div>
+      }
     }
 
     <!-- ================= LISTA DE ELEMENTOS ================= -->
@@ -367,149 +582,132 @@
             Expresiones culturales registradas ({{ filtradasExpresiones().length }})
           }
         </h2>
-        <input
-          type="text"
-          [value]="filtro()"
-          (input)="filtro.set($any($event.target).value)"
-          placeholder="Buscar por nombre o país..."
-          class="bg-vicblue border border-brass/30 text-paper-light px-3 py-1.5 text-xs rounded-sm focus:border-brass focus:outline-none w-full sm:w-64"
-        />
+        <label class="w-full sm:w-64">
+          <span class="sr-only">Buscar en la lista</span>
+          <input
+            type="search"
+            [value]="filtro()"
+            (input)="filtro.set($any($event.target).value)"
+            placeholder="Buscar por nombre o país..."
+            class="bg-vicblue border border-brass/30 text-paper-light px-3 py-1.5 text-xs rounded-sm focus:border-brass focus:outline-none w-full"
+          />
+        </label>
       </div>
 
       <!-- LISTA: LUGARES FÍSICOS -->
       @if (tipoGestion() === 'lugares') {
-        <ul class="mt-4 divide-y divide-brass/15">
-          @for (l of filtradosLugares(); track l.id) {
-            <li class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-paper-light text-base">{{ l.name }}</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-brass/20 text-brass-light font-bold">
-                    {{ l.category }}
-                  </span>
-                  <span class="text-[10px] text-paper-dark font-mono">({{ l.country }})</span>
+        @if (cargandoLugares()) {
+          <p class="mt-4 text-sm text-paper-dark" role="status">Cargando lugares…</p>
+        } @else {
+          <ul class="mt-4 divide-y divide-brass/15">
+            @for (l of filtradosLugares(); track l.id) {
+              <li class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-paper-light text-base">{{ l.name }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-brass/20 text-brass-light font-bold">
+                      {{ etiquetaCategoria(l.category) }}
+                    </span>
+                    <span class="text-[10px] text-paper-dark">{{ nombrePais(l.country) }}</span>
+                  </div>
+                  <p class="text-xs text-paper-dark mt-1 font-mono">
+                    id: {{ l.id }} · coords: {{ l.coords[0] }}, {{ l.coords[1] }}
+                  </p>
                 </div>
-                <p class="text-xs text-paper-dark mt-1 font-mono">
-                  id: {{ l.id }} · coords: {{ l.coords[0] }}, {{ l.coords[1] }}
-                </p>
-              </div>
 
-              <div class="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  (click)="editar(l)"
-                  [disabled]="guardando() || borrando() !== null"
-                  class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-brass/40 rounded-sm text-brass-light hover:bg-brass/10 transition-colors"
-                >
-                  Editar
-                </button>
-                @if (puedeBorrar() && confirmando() !== l.id) {
+                <div class="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    (click)="pedirBorrado(l.id)"
-                    [disabled]="borrando() !== null"
-                    class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-red-400/40 rounded-sm text-red-200 hover:bg-red-900/20 transition-colors"
+                    (click)="editar(l)"
+                    [disabled]="guardando() || borrando() !== null"
+                    class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-brass/40 rounded-sm text-brass-light hover:bg-brass/10 transition-colors"
                   >
-                    Eliminar
+                    Editar
                   </button>
-                }
-              </div>
-
-              @if (confirmando() === l.id) {
-                <div class="w-full mt-2 p-3 bg-red-900/30 border border-red-500/40 rounded-sm flex items-center justify-between gap-3">
-                  <span class="text-xs text-red-200">¿Confirmas la eliminación permanente de este lugar?</span>
-                  <div class="flex gap-2">
+                  @if (puedeBorrar()) {
                     <button
                       type="button"
-                      (click)="confirmarBorradoLugar(l.id)"
-                      class="px-3 py-1 bg-red-600 text-white font-bold text-xs rounded-sm hover:bg-red-500"
+                      (click)="pedirBorrado('lugares', l.id, l.name)"
+                      [disabled]="borrando() !== null"
+                      class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-red-400/40 rounded-sm text-red-200 hover:bg-red-900/20 transition-colors"
                     >
-                      Sí, eliminar
+                      Eliminar
                     </button>
-                    <button
-                      type="button"
-                      (click)="cancelarBorrado()"
-                      class="px-3 py-1 border border-paper-dark text-paper-light text-xs rounded-sm"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
+                  }
                 </div>
-              }
-            </li>
-          } @empty {
-            <p class="py-6 text-sm text-paper-dark italic">No hay lugares coincidentes.</p>
-          }
-        </ul>
+              </li>
+            } @empty {
+              <li class="py-6 text-sm text-paper-dark italic">No hay lugares coincidentes.</li>
+            }
+          </ul>
+        }
       }
 
       <!-- LISTA: EXPRESIONES CULTURALES -->
       @if (tipoGestion() === 'expresiones') {
-        <ul class="mt-4 divide-y divide-brass/15">
-          @for (e of filtradasExpresiones(); track e.id) {
-            <li class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-paper-light text-base">{{ e.titulo }}</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-brass/20 text-brass-light font-bold">
-                    {{ e.categoriaLabel }}
-                  </span>
-                  <span class="text-[10px] text-paper-dark">({{ e.paisNombre }})</span>
+        @if (cargandoExpresiones() && expresiones().length === 0) {
+          <p class="mt-4 text-sm text-paper-dark" role="status">Cargando expresiones…</p>
+        } @else {
+          <ul class="mt-4 divide-y divide-brass/15">
+            @for (e of filtradasExpresiones(); track e.id) {
+              <li class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-paper-light text-base">{{ e.titulo }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-brass/20 text-brass-light font-bold">
+                      {{ e.categoriaLabel }}
+                    </span>
+                    <span class="text-[10px] text-paper-dark">{{ e.paisNombre }}</span>
+                  </div>
+                  <p class="text-xs text-paper-dark mt-1 line-clamp-1 max-w-xl">
+                    {{ e.desc }}
+                  </p>
+                  <p class="text-[10px] text-paper-dark font-mono mt-0.5">id: {{ e.id }}</p>
                 </div>
-                <p class="text-xs text-paper-dark mt-1 line-clamp-1 max-w-xl">
-                  {{ e.desc }}
-                </p>
-                <p class="text-[10px] text-paper-dark font-mono mt-0.5">id: {{ e.id }}</p>
-              </div>
 
-              <div class="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  (click)="editarExpresion(e)"
-                  [disabled]="guardando() || borrando() !== null"
-                  class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-brass/40 rounded-sm text-brass-light hover:bg-brass/10 transition-colors"
-                >
-                  Editar
-                </button>
-                @if (puedeBorrar() && confirmando() !== e.id) {
+                <div class="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    (click)="pedirBorrado(e.id)"
-                    [disabled]="borrando() !== null"
-                    class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-red-400/40 rounded-sm text-red-200 hover:bg-red-900/20 transition-colors"
+                    (click)="editarExpresion(e)"
+                    [disabled]="guardando() || borrando() !== null"
+                    class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-brass/40 rounded-sm text-brass-light hover:bg-brass/10 transition-colors"
                   >
-                    Eliminar
+                    Editar
                   </button>
-                }
-              </div>
-
-              @if (confirmando() === e.id) {
-                <div class="w-full mt-2 p-3 bg-red-900/30 border border-red-500/40 rounded-sm flex items-center justify-between gap-3">
-                  <span class="text-xs text-red-200">¿Confirmas la eliminación permanente de esta expresión?</span>
-                  <div class="flex gap-2">
+                  @if (puedeBorrar()) {
                     <button
                       type="button"
-                      (click)="confirmarBorradoExpresion(e.id)"
-                      class="px-3 py-1 bg-red-600 text-white font-bold text-xs rounded-sm hover:bg-red-500"
+                      (click)="pedirBorrado('expresiones', e.id, e.titulo)"
+                      [disabled]="borrando() !== null"
+                      class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] border border-red-400/40 rounded-sm text-red-200 hover:bg-red-900/20 transition-colors"
                     >
-                      Sí, eliminar
+                      Eliminar
                     </button>
-                    <button
-                      type="button"
-                      (click)="cancelarBorrado()"
-                      class="px-3 py-1 border border-paper-dark text-paper-light text-xs rounded-sm"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
+                  }
                 </div>
-              }
-            </li>
-          } @empty {
-            <p class="py-6 text-sm text-paper-dark italic">No hay expresiones culturales coincidentes.</p>
-          }
-        </ul>
+              </li>
+            } @empty {
+              <li class="py-6 text-sm text-paper-dark italic">
+                No hay expresiones culturales coincidentes.
+              </li>
+            }
+          </ul>
+        }
       }
     </div>
   </div>
 </div>
+
+<app-confirm-dialog
+  [abierto]="borradoPendiente() !== null"
+  titulo="Eliminar del atlas"
+  [mensaje]="
+    '¿Seguro que quieres eliminar «' +
+    (borradoPendiente()?.nombre ?? '') +
+    '»? Esta acción es permanente y no se puede deshacer.'
+  "
+  textoConfirmar="Sí, eliminar"
+  tono="peligro"
+  (confirmado)="borrarPendiente()"
+  (cancelado)="cancelarBorrado()"
+/>

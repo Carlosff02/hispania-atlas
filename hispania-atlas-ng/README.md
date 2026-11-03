@@ -35,16 +35,15 @@ reenvía las peticiones de `/api` al backend gracias a `proxy.conf.json`.
 
 | Entorno | `apiBaseUrl` | Resultado |
 | --- | --- | --- |
-| `environment.development.ts` | `/api` | Pasa por el proxy, mismo origen |
-| `environment.ts` (producción) | `/api` | Se sirve desde el mismo origen que el backend |
+| `environment.development.ts` | `http://localhost:8080/api` | Llamada directa; el backend permite CORS desde `localhost:4200` y el proxy de `npm start` sigue disponible |
+| `environment.ts` (producción) | `https://hispania-backend-exe4cyeahhg8c2de.westus3-01.azurewebsites.net/api` | Llamada directa a la Web App de Azure |
 
-Si prefieres llamar al backend por su URL absoluta (como hace la versión React con
-`http://localhost:8080/api`), cambia `apiBaseUrl` en `environment.development.ts` y
-asegúrate de tener CORS habilitado en Spring Boot.
+Si el backend cambia de hostname, hay que actualizar `environment.ts` **antes** de compilar:
+la URL se incrusta en el bundle de producción.
 
-La clave de CARTO para las teselas del mapa está en `environment.development.ts`
-(`cartoApiKey`). En producción queda vacía a propósito: es una clave de desarrollo y
-debe inyectarse en el despliegue, no subirse al repositorio.
+La clave de CARTO para las teselas del mapa está en ambos entornos (`cartoApiKey`). Es una
+clave de desarrollo de ámbito limitado; para un entorno público conviene restringirla por
+dominio en el panel de CARTO.
 
 ## Estructura
 

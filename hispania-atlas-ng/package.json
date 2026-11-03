@@ -9,6 +9,9 @@
     "test": "ng test",
     "lint": "ng lint"
   },
+  "engines": {
+    "node": "22.x"
+  },
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,

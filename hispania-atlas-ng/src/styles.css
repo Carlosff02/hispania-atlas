@@ -33,6 +33,50 @@ body {
 }
 
 /*
+ * Foco visible global. Tailwind quita el outline por defecto en varios
+ * componentes y sin un sustituto el teclado se vuelve inutilizable: no se sabe
+ * dónde está el foco. `:focus-visible` lo muestra solo cuando se navega con
+ * teclado, no al hacer clic con el ratón.
+ */
+:focus-visible {
+  outline: 2px solid #806236;
+  outline-offset: 2px;
+}
+
+/* Enlace de salto: invisible hasta que recibe foco con Tab. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 3000;
+  padding: 0.75rem 1rem;
+  background: #11181f;
+  color: #f5eedc;
+  border: 1px solid #b08d57;
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/*
+ * Respeto por `prefers-reduced-motion`: las transiciones del atlas son cortas,
+ * pero quien pide menos movimiento no debería recibir ninguna.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
  * Leaflet se carga como hoja de estilos global desde angular.json, pero crea
  * varios elementos (atribución, tooltips) FUERA del flujo del componente, así
  * que los ajustes van aquí y no en los `styles` del componente: la encapsulación

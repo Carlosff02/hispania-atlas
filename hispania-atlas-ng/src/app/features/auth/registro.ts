@@ -10,15 +10,36 @@
  * Java a la que corresponde.
  */
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { mensajeDeError } from '../../core/http/api-error';
 import { AuthService } from '../../core/services/auth.service';
 
+/**
+ * Comprueba que las dos contraseñas coinciden.
+ *
+ * Se valida en el grupo y no al enviar para que el aviso aparezca mientras se
+ * escribe la segunda. `repetirPassword` es el campo que se marca, porque es el
+ * que la persona acaba de teclear y el que tiene que corregir.
+ */
+function coinciden(control: AbstractControl): ValidationErrors | null {
+  const password = control.get('password')?.value ?? '';
+  const repetir = control.get('repetirPassword')?.value ?? '';
+  if (repetir === '') return null;
+  return password === repetir ? null : { noCoincide: true };
+}
+
 @Component({
   selector: 'app-registro',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NgClass],
   templateUrl: './registro.html',
 })
 export class Registro {
@@ -28,22 +49,26 @@ export class Registro {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly verPassword = signal(false);
 
-  protected readonly form = this.fb.nonNullable.group({
-    username: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(30),
-        Validators.pattern(/^[a-zA-Z0-9_]+$/),
+  protected readonly form = this.fb.nonNullable.group(
+    {
+      username: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(30),
+          Validators.pattern(/^[a-zA-Z0-9_]+$/),
+        ],
       ],
-    ],
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
-    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
-    nombre: ['', [Validators.maxLength(100)]],
-    repetirPassword: ['', [Validators.required]],
-  });
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
+      nombre: ['', [Validators.maxLength(100)]],
+      repetirPassword: ['', [Validators.required]],
+    },
+    { validators: coinciden },
+  );
 
   protected async enviar(): Promise<void> {
     if (this.form.invalid || this.submitting()) {
@@ -51,16 +76,12 @@ export class Registro {
       return;
     }
 
-    const { repetirPassword, ...datos } = this.form.getRawValue();
-    if (datos.password !== repetirPassword) {
-      this.error.set('Las dos contraseñas no coinciden.');
-      return;
-    }
+    const { username, email, password, nombre } = this.form.getRawValue();
 
     this.submitting.set(true);
     this.error.set(null);
     try {
-      await this.auth.registro({ ...datos, nombre: datos.nombre || null });
+      await this.auth.registro({ username, email, password, nombre: nombre || null });
       await this.router.navigateByUrl('/explorar');
     } catch (e) {
       this.error.set(mensajeDeError(e));
@@ -73,5 +94,29 @@ export class Registro {
   protected controlMarcado(name: string): boolean {
     const control = this.form.get(name);
     return !!control && control.touched && control.invalid;
+  }
+
+  /**
+   * Mensaje concreto por campo. Un "revisa el campo" obliga a adivinar cuál de
+   * las cuatro reglas del usuario se ha incumplido.
+   */
+  protected errorDe(campo: string): string {
+    const control = this.form.get(campo);
+    if (!control || !control.touched || control.valid) return '';
+    const errores = control.errors ?? {};
+
+    if (errores['required']) return 'Este campo es obligatorio.';
+    if (errores['noCoincide']) return 'Las dos contraseñas no coinciden.';
+    if (errores['email']) return 'El email no tiene un formato válido.';
+    if (errores['minlength']) {
+      return `Necesita al menos ${errores['minlength'].requiredLength} caracteres.`;
+    }
+    if (errores['maxlength']) {
+      return `Máximo ${errores['maxlength'].requiredLength} caracteres.`;
+    }
+    if (errores['pattern']) {
+      return 'Solo letras sin tildes, números y guion bajo (sin espacios).';
+    }
+    return 'Revisa este campo.';
   }
 }

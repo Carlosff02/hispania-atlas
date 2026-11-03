@@ -88,6 +88,20 @@ export class Datos {
     this.indicador.set(id);
   }
 
+  /** Vuelve a la comparación de arranque. Evita tener que deshacer a mano. */
+  protected restablecer(): void {
+    this.seleccionados.set([...SELECCION_INICIAL]);
+    this.indicador.set('gdp');
+  }
+
+  protected readonly hayCambios = computed(() => {
+    const actual = [...this.seleccionados()].sort().join(',');
+    const inicial = [...SELECCION_INICIAL].sort().join(',');
+    return actual !== inicial || this.indicador() !== 'gdp';
+  });
+
+  protected readonly cargando = this.store.loading;
+
   protected countryClass(code: string): string {
     const base = 'px-3 py-1.5 text-xs border';
     return this.isSelected(code)

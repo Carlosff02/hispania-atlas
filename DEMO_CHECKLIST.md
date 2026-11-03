@@ -15,9 +15,12 @@ Lista de verificación técnica y flujo guiado de demostración para la evaluaci
   - Vistas: Cartografía interactiva (Leaflet + GeoJSON), Patrimonio Cultural unificado (`/cultura` y `/patrimonios`), Anales Históricos, Economía (Chart.js), Administración de Usuarios y Flujo de Propuestas/Moderación.
   - Interceptors HTTP para inyección de token Bearer y manejo reactivo de errores.
 - **Despliegue en la Nube (Azure):**
-  - Frontend en **Azure Static Web Apps**.
-  - Backend en **Azure App Service / Container Apps**.
-  - Base de datos en **Azure Database for PostgreSQL Flexible Server**.
+  - Frontend en **Azure Static Web Apps** (`delightful-dune-03f28690f`).
+  - Backend en **Azure App Service (Web App Linux con contenedor)** a partir de la imagen
+    `hispania-backend:latest` publicada en **Azure Container Registry** (`hispaniaatlasregistry`).
+  - Base de datos en **Azure Database for PostgreSQL Flexible Server** (`hispania-pg`, v17).
+  - El procedimiento completo, con las variables de entorno y el diagnóstico de fallos, está
+    en el [`README.md`](README.md#despliegue-en-azure).
 
 ---
 

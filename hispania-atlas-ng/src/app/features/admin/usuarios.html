@@ -153,7 +153,7 @@
               <li>
                 <button
                   type="button"
-                  (click)="alternarActivo(u)"
+                  (click)="pedirCambioEstado(u)"
                   [disabled]="procesando() !== null"
                   class="px-3 py-1.5 text-[11px] font-bold tracking-[0.1em] uppercase rounded-sm border transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   [class]="
@@ -173,3 +173,21 @@
     }
   </div>
 </div>
+
+<app-confirm-dialog
+  [abierto]="confirmandoEstado() !== null"
+  [titulo]="confirmandoEstado()?.activo ? 'Desactivar cuenta' : 'Activar cuenta'"
+  [mensaje]="
+    confirmandoEstado()?.activo
+      ? '¿Desactivar «' +
+        (confirmandoEstado()?.username ?? '') +
+        '»? No podrá iniciar sesión hasta que la reactives. Los tokens ya emitidos siguen vigentes hasta caducar.'
+      : '¿Activar «' +
+        (confirmandoEstado()?.username ?? '') +
+        '»? Podrá volver a iniciar sesión con su contraseña.'
+  "
+  [textoConfirmar]="confirmandoEstado()?.activo ? 'Sí, desactivar' : 'Sí, activar'"
+  [tono]="confirmandoEstado()?.activo ? 'peligro' : 'primario'"
+  (confirmado)="confirmarCambioEstado()"
+  (cancelado)="cancelarCambioEstado()"
+/>

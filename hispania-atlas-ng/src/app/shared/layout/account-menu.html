@@ -1,11 +1,13 @@
 <div class="relative">
   @if (autenticado()) {
     <button
+      #botonCuenta
       type="button"
       (click)="alternar()"
       class="flex items-center gap-2 px-2.5 py-1.5 rounded-sm border border-brass/40 hover:border-brass transition-colors"
-      aria-haspopup="true"
+      aria-haspopup="menu"
       [attr.aria-expanded]="abierto()"
+      [attr.aria-controls]="abierto() ? 'menu-cuenta' : null"
     >
       <span
         class="grid place-items-center w-7 h-7 rounded-full bg-brass/20 border border-brass text-[11px] font-bold text-brass-light uppercase"
@@ -22,6 +24,9 @@
 
     @if (abierto()) {
       <div
+        #panelMenu
+        id="menu-cuenta"
+        role="menu"
         class="absolute right-0 mt-2 w-56 bg-vicblue border border-brass/40 rounded-sm shadow-[0_8px_24px_rgba(0,0,0,0.5)] z-[1300]"
       >
         <div class="px-4 py-3 border-b border-brass/20">
@@ -39,6 +44,7 @@
             <a
               [routerLink]="item.path"
               (click)="alNavegar()"
+              role="menuitem"
               class="block px-4 py-2 text-xs font-bold tracking-[0.1em] uppercase text-paper-dark hover:text-brass-light hover:bg-vicblue-dark transition-colors"
             >
               {{ item.label }}
@@ -49,6 +55,7 @@
         <button
           type="button"
           (click)="salir()"
+          role="menuitem"
           class="w-full text-left px-4 py-2.5 text-xs font-bold tracking-[0.1em] uppercase text-paper-dark hover:text-red-200 hover:bg-vicblue-dark border-t border-brass/20 transition-colors"
         >
           Cerrar sesión

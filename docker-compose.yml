@@ -1,3 +1,5 @@
+name: hispania
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -6,7 +8,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      # Si el 5432 ya está ocupado por un PostgreSQL local, exporta POSTGRES_PORT=5433
+      # antes de `docker compose up`.
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +30,7 @@ services:
       CORS_ALLOWED_ORIGINS: http://localhost:8081
       PORT: 8080
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,7 +39,7 @@ services:
     build:
        context: ./hispania-atlas-ng
     ports:
-      - "8081:80"
+      - "${FRONTEND_PORT:-8081}:80"
     depends_on:
       - backend
 

@@ -14,6 +14,7 @@
  * como un `Http failure response for ...` en la pantalla.
  */
 import { Component, inject, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -22,7 +23,7 @@ import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NgClass],
   templateUrl: './login.html',
 })
 export class Login {
@@ -33,6 +34,7 @@ export class Login {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly verPassword = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
     username: ['', [Validators.required]],
@@ -67,5 +69,10 @@ export class Login {
   /** Destino tras entrar: el que el usuario intentaba, o la portada. */
   private destino(): string {
     return this.route.snapshot.queryParamMap.get('returnUrl') ?? '/explorar';
+  }
+
+  protected controlMarcado(name: string): boolean {
+    const control = this.form.get(name);
+    return !!control && control.touched && control.invalid;
   }
 }

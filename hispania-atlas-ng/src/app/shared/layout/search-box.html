@@ -7,15 +7,24 @@
     role="combobox"
     aria-label="Buscar región o monumento"
     aria-autocomplete="list"
+    aria-describedby="busqueda-ayuda"
     [attr.aria-expanded]="showResults()"
     [attr.aria-controls]="'busqueda-lista'"
+    [attr.aria-activedescendant]="
+      showResults() && activo() >= 0 ? 'busqueda-opcion-' + activo() : null
+    "
     autocomplete="off"
     [value]="query()"
     (input)="onInput($event)"
     (focus)="onFocus()"
+    (keydown)="onKeydown($event)"
     placeholder="Buscar región o monumento..."
     class="bg-vicblue-dark border border-brass/50 rounded-sm pl-9 pr-4 py-1.5 text-[13px] w-36 lg:w-56 placeholder:text-paper-dark focus:outline-none focus:border-brass text-paper-light"
   />
+  <span id="busqueda-ayuda" class="sr-only">
+    Escribe al menos dos letras. Usa las flechas para recorrer los resultados, Enter para
+    abrirlos y Escape para cerrar la lista.
+  </span>
 
   @if (showResults()) {
     <div
@@ -30,13 +39,16 @@
         </div>
       }
 
-      @for (c of matchedCountries(); track c.code) {
+      @for (c of matchedCountries(); track c.code; let i = $index) {
         <button
           type="button"
           role="option"
-          [attr.aria-selected]="false"
+          [id]="'busqueda-opcion-' + i"
+          [attr.aria-selected]="activo() === i"
           (click)="seleccionarPais(c)"
-          class="w-full text-left p-2 hover:bg-paper border-b border-paper-border last:border-0 cursor-pointer flex items-center justify-between"
+          (mouseenter)="activo.set(i)"
+          class="w-full text-left p-2 border-b border-paper-border last:border-0 cursor-pointer flex items-center justify-between"
+          [class.bg-paper-dark]="activo() === i"
         >
           <span>
             <span class="block text-[13px] font-bold text-vicblue">{{ c.name }}</span>
@@ -48,17 +60,22 @@
         </button>
       }
 
-      @for (p of matchedPlaces(); track p.id) {
+      @for (p of matchedPlaces(); track p.id; let i = $index) {
         <button
           type="button"
           role="option"
-          [attr.aria-selected]="false"
+          [id]="'busqueda-opcion-' + (matchedCountries().length + i)"
+          [attr.aria-selected]="activo() === matchedCountries().length + i"
           (click)="seleccionarLugar(p)"
-          class="w-full text-left p-2 hover:bg-paper border-b border-paper-border last:border-0 cursor-pointer flex items-center justify-between"
+          (mouseenter)="activo.set(matchedCountries().length + i)"
+          class="w-full text-left p-2 border-b border-paper-border last:border-0 cursor-pointer flex items-center justify-between"
+          [class.bg-paper-dark]="activo() === matchedCountries().length + i"
         >
           <span>
             <span class="block text-[13px] font-bold text-ink">{{ p.name }}</span>
-            <span class="block text-[10px] text-brass-dark italic">{{ p.category }}</span>
+            <span class="block text-[10px] text-brass-dark italic">
+              {{ etiquetaCategoria(p.category) }}
+            </span>
           </span>
           <span class="text-[9px] px-2 py-0.5 border border-ink/20 text-ink-muted uppercase">
             Cultura

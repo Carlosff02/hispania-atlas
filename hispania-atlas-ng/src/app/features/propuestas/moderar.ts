@@ -20,11 +20,12 @@ import { FormsModule } from '@angular/forms';
 
 import { mensajeDeError } from '../../core/http/api-error';
 import { PropuestasService } from '../../core/services/propuestas.service';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import type { Propuesta } from '../../core/models';
 
 @Component({
   selector: 'app-moderar',
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, ConfirmDialog],
   templateUrl: './moderar.html',
 })
 export class Moderar {
@@ -39,6 +40,9 @@ export class Moderar {
   /** Id de la propuesta abierta, con su motivo en curso. */
   protected readonly rechazando = signal<number | null>(null);
   protected readonly motivo = signal('');
+
+  /** Propuesta pendiente de confirmar antes de aprobarla. */
+  protected readonly aprobando = signal<Propuesta | null>(null);
 
   constructor() {
     void this.cargar();
@@ -64,6 +68,24 @@ export class Moderar {
   protected cerrarRechazo(): void {
     this.rechazando.set(null);
     this.motivo.set('');
+  }
+
+  /**
+   * Aprobar mete el lugar en el atlas y quita la propuesta de la cola. No hay
+   * botón de deshacer, así que se pide confirmación explícita antes.
+   */
+  protected solicitarAprobacion(p: Propuesta): void {
+    this.aprobando.set(p);
+  }
+
+  protected cancelarAprobacion(): void {
+    this.aprobando.set(null);
+  }
+
+  protected confirmarAprobacion(): void {
+    const p = this.aprobando();
+    this.aprobando.set(null);
+    if (p) void this.aprobar(p);
   }
 
   protected async aprobar(p: Propuesta): Promise<void> {
